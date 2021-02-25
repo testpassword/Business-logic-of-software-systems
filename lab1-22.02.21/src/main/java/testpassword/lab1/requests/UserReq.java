@@ -1,12 +1,13 @@
 package testpassword.lab1.requests;
 
-import lombok.Data;
+import lombok.*;
 import javax.validation.constraints.Email;
 import java.io.Serializable;
 
-public class UserDTO implements Serializable {
+@Data @Builder @Value
+public class UserReq implements Serializable {
 
-    private static final long serialVersionUID = 4L;
+    public static final long serialVersionUID = 4L;
     @Email public String email;
     public String password;
     public String name;

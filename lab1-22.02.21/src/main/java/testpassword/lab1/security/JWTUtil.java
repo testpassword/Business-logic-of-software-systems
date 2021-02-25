@@ -3,14 +3,18 @@ package testpassword.lab1.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import testpassword.lab1.services.UserDetailsServiceImpl;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
@@ -18,14 +22,12 @@ import java.util.function.Function;
 
     @Value("${jwt.key}") private String KEY;
     @Value("${jwt.validity}") private long VALIDITY;
-    private final UserDetailsService userDetails;
-
-    @Autowired public JWTUtil(UserDetailsService userDetails) { this.userDetails = userDetails; }
+    @Autowired private UserDetailsServiceImpl userDetails;
 
     public String generateToken(String username, List<String> roles) {
-        var claims = Jwts.claims().setSubject(username);
+        val claims = Jwts.claims().setSubject(username);
         claims.put("roles", roles);
-        var now = new Date();
+        val now = new Date();
         return Jwts.builder().setClaims(claims).setIssuedAt(now).setExpiration(new Date(now.getTime() + VALIDITY))
                 .signWith(SignatureAlgorithm.HS512, KEY).compact();
     }
@@ -37,13 +39,13 @@ import java.util.function.Function;
     private boolean isTokenExpired(String token) { return getExpirationDate(token).before(new Date()); }
 
     public String resolveToken(HttpServletRequest req) {
-        var bearerToken = req.getHeader("Authorization");
+        val bearerToken = req.getHeader("Authorization");
         return (bearerToken != null && bearerToken.startsWith("Bearer ")) ? bearerToken.substring(7) : null;
     }
 
     public Authentication getAuthentication(String token) {
-        var ud = this.userDetails.loadUserByUsername(getUsername(token));
-        return new UsernamePasswordAuthenticationToken(ud, "", ud.getAuthorities());
+        val details = this.userDetails.loadUserByUsername(getUsername(token));
+        return new UsernamePasswordAuthenticationToken(details, "", details.getAuthorities());
     }
 
     public String getUsername(String token) { return getClaim(token, Claims::getSubject); }
@@ -53,4 +55,6 @@ import java.util.function.Function;
     public <T> T getClaim(String token, Function<Claims, T> claimsResolver) {
         return claimsResolver.apply(Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).getBody());
     }
+
+    public String decode(HttpServletRequest req) { return this.getUsername(this.resolveToken(req)); }
 }

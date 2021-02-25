@@ -8,5 +8,7 @@ import testpassword.lab1.models.User;
 
     User getByEmail(String email);
 
+    User getByUserId(long id);
+
     boolean existsByEmail(String email);
 }
