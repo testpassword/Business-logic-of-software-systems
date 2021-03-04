@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import testpassword.lab1.models.Advert;
 import testpassword.lab1.repos.AdvertRepo;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service public class AdvertService {
 
@@ -26,9 +28,9 @@ import java.util.*;
         }
     }
 
-    public Set<Advert> getAll() { return new HashSet<>((Collection<? extends Advert>) repo.findAll()); }
+    public List<Advert> getAll() { return StreamSupport.stream(repo.findAll().spliterator(), false).collect(Collectors.toList()); }
 
-    public Advert get(int id) { return repo.getByAdvertId(id); }
+    public Advert get(long id) { return repo.getByAdvertId(id); }
 
     @Transactional public void save(Advert a) { this.repo.save(a); }
 

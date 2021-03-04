@@ -1,5 +1,6 @@
 package testpassword.lab1.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.Nullable;

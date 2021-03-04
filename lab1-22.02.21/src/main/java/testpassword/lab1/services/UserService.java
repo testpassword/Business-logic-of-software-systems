@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import testpassword.lab1.models.User;
 import testpassword.lab1.repos.UserRepo;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service public class UserService {
 
@@ -31,8 +33,8 @@ import java.util.*;
         return this.get(email); //загружаем из базы данных, чтобы получить сущность уже с присвоенным id
     }
 
-    @Transactional public void delete(String email, String password) {
-        repo.delete(new User(email, password));
+    @Transactional public void delete(String email) {
+        repo.delete(this.repo.getByEmail(email));
         try {
             postman.send(email, "Goodbye", ":(");
         } catch (MailSendException e) { System.out.println("[ERROR] " + e.getLocalizedMessage()); }
@@ -48,11 +50,11 @@ import java.util.*;
         }
     }
 
-    public Set<User> getAll() { return new HashSet<>((Collection<? extends User>) repo.findAll()); }
+    public List<User> getAll() { return StreamSupport.stream(repo.findAll().spliterator(), false).collect(Collectors.toList()); }
 
-    public Optional<User> get(String email) { return Optional.of(repo.getByEmail(email)); }
+    public Optional<User> get(String email) { return Optional.ofNullable(repo.getByEmail(email)); }
 
-    public Optional<User> get(long id) { return Optional.of(repo.getByUserId(id)); }
+    public Optional<User> get(long id) { return Optional.ofNullable(repo.getByUserId(id)); }
 
     public boolean exist(String email) { return repo.existsByEmail(email); }
 

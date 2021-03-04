@@ -26,8 +26,8 @@ import testpassword.lab1.security.JWTUtil;
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                 .and().authorizeRequests()
-                .antMatchers("/user/*").permitAll()
-                .antMatchers("/advert/*").permitAll()
+                .antMatchers("/user/**").permitAll()
+                .antMatchers("/advert/**").permitAll()
                 .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()
                 .and().apply(new SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>() {

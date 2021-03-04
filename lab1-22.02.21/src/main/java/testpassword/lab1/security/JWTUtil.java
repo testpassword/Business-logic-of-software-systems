@@ -45,7 +45,11 @@ import java.util.function.Function;
 
     public Authentication getAuthentication(String token) {
         val details = this.userDetails.loadUserByUsername(getUsername(token));
-        return new UsernamePasswordAuthenticationToken(details, "", details.getAuthorities());
+        try {
+            return new UsernamePasswordAuthenticationToken(details, "", details.getAuthorities());
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
 
     public String getUsername(String token) { return getClaim(token, Claims::getSubject); }

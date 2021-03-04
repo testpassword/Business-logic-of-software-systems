@@ -6,19 +6,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
-import testpassword.lab1.models.User;
 import testpassword.lab1.requests.UserReq;
 import testpassword.lab1.responses.UserRes;
 import testpassword.lab1.security.JWTUtil;
 import testpassword.lab1.services.UserService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @RestController @RequestMapping(path = "/user")
 public class UserController {
@@ -26,30 +22,19 @@ public class UserController {
     @Autowired private AuthenticationManager auth;
     @Autowired private JWTUtil jwtUtil;
     @Autowired private UserService service;
-    private final UnaryOperator<User> wipeConfidential = u -> {
-        u.setPassword("");
-        return u;
-    };
 
-    @GetMapping(path = "getAll", produces = "application/json")
+    @GetMapping(path = "all", produces = "application/json")
     public ResponseEntity<UserRes> getAll() {
         return new ResponseEntity<>(
-                UserRes.builder()
-                        .users(service.getAll()
-                                .stream()
-                                .map(wipeConfidential)
-                                .collect(Collectors.toSet()))
-                        .build(),
+                UserRes.builder().users(service.getAll()).build(),
                 HttpStatus.OK);
     }
 
-    @GetMapping(path = "get/{userId}", produces = "application/json")
+    @GetMapping(path = "{userId}", produces = "application/json")
     public ResponseEntity<UserRes> getUser(@PathVariable long userId) {
         return service.get(userId)
                 .map(u -> new ResponseEntity<>(
-                        UserRes.builder()
-                                .users(new HashSet<User>() {{ add(wipeConfidential.apply(u)); }})
-                                .build(),
+                        UserRes.builder().users(Collections.singletonList(u)).build(),
                         HttpStatus.OK)
                 ).orElse(new ResponseEntity<>(
                         UserRes.builder().msg("User with this id didn't exist").build(),
@@ -58,35 +43,40 @@ public class UserController {
 
     @PostMapping(path = "login", consumes = "application/json", produces = "application/json")
     public ResponseEntity<UserRes> login(@Valid @RequestBody UserReq req) {
-        if (service.exist(req.email)) {
-            auth.authenticate(new UsernamePasswordAuthenticationToken(req.email, req.password));
-            val u = service.get(req.email).get();
-            return new ResponseEntity<>(
-                    UserRes.builder()
-                            .token(jwtUtil.generateToken(u.getEmail(), Collections.singletonList("USER")))
-                            .userId(u.getUserId())
-                            .build(),
-                    HttpStatus.ACCEPTED);
-        } else return new ResponseEntity<>(
-                UserRes.builder().msg("User didn't exist. Check email and password").build(),
-                HttpStatus.BAD_REQUEST);
+        return service.get(req.email)
+                .map(u -> {
+                    try {
+                        auth.authenticate(new UsernamePasswordAuthenticationToken(req.email, req.password));
+                        return new ResponseEntity<>(
+                                UserRes.builder()
+                                        .token(jwtUtil.generateToken(u.getEmail(), Collections.singletonList("USER")))
+                                        .build(),
+                                HttpStatus.ACCEPTED);
+                    } catch (AuthenticationException e) {
+                        return new ResponseEntity<>(
+                                UserRes.builder().msg("Password incorrect").build(),
+                                HttpStatus.BAD_REQUEST);
+                    }
+                }).orElse(new ResponseEntity<>(
+                        UserRes.builder().msg("User didn't exist. Check email and password").build(),
+                        HttpStatus.BAD_REQUEST));
     }
 
     @PutMapping(path = "register", consumes = "application/json", produces = "application/json")
     public ResponseEntity<UserRes> register(@Valid @RequestBody UserReq req) {
-        if (service.exist(req.email)) return new ResponseEntity<>(
-                UserRes.builder().msg("User already exist").build(),
-                HttpStatus.CONFLICT);
-        else {
-            val u = service.add(req.email, req.password, req.name).get();
-            auth.authenticate(new UsernamePasswordAuthenticationToken(req.email, req.password));
-            return new ResponseEntity<>(
-                    UserRes.builder()
-                            .token(jwtUtil.generateToken(u.getEmail(), Collections.singletonList("USER")))
-                            .userId(u.getUserId())
-                            .build(),
-                    HttpStatus.CREATED);
-        }
+        return service.get(req.email)
+                .map(u -> new ResponseEntity<>(
+                        UserRes.builder().msg("User already exist").build(),
+                        HttpStatus.CONFLICT)
+                ).orElseGet(() -> {
+                    val u = service.add(req.email, req.password, req.name).get();
+                    auth.authenticate(new UsernamePasswordAuthenticationToken(req.email, req.password));
+                    return new ResponseEntity<>(
+                            UserRes.builder()
+                                    .token(jwtUtil.generateToken(u.getEmail(), Collections.singletonList("USER")))
+                                    .build(),
+                            HttpStatus.CREATED);
+                });
     }
 
     @PatchMapping(path = "modify", consumes = "application/json", produces = "application/json")
@@ -99,8 +89,8 @@ public class UserController {
                                     UserRes.builder().msg("Mail is busy").build(),
                                     HttpStatus.CONFLICT);
                         else u.setEmail(req.email);
-                    Optional.of(req.name).ifPresent(u::setName);
-                    Optional.of(req.password).ifPresent(u::setPassword);
+                    Optional.ofNullable(req.name).ifPresent(u::setName);
+                    Optional.ofNullable(req.password).ifPresent(u::setPassword);
                     service.save(u);
                     return new ResponseEntity<>(
                             UserRes.builder().token(jwtUtil.generateToken(req.email, Collections.singletonList("USER"))).build(),
@@ -114,19 +104,27 @@ public class UserController {
     public ResponseEntity<UserRes> delete(@Valid @RequestBody UserReq req, HttpServletRequest rawReq) {
         return (service.get(jwtUtil.decode(rawReq)))
                 .map(u -> {
-                    service.delete(u.getEmail(), req.password);
-                    return new ResponseEntity<>(
-                            UserRes.builder().msg("Successful delete account").build(),
-                            HttpStatus.OK);
+                    try {
+                        System.out.println(u.getEmail());
+                        auth.authenticate(new UsernamePasswordAuthenticationToken(u.getEmail(), req.password));
+                        service.delete(u.getEmail());
+                        return new ResponseEntity<>(
+                                UserRes.builder().msg("Successful delete account").build(),
+                                HttpStatus.OK);
+                    } catch (AuthenticationException e) {
+                        return new ResponseEntity<>(
+                                UserRes.builder().msg("Bad password").build(),
+                                HttpStatus.UNAUTHORIZED);
+                    }
                 }).orElse(new ResponseEntity<>(
-                        UserRes.builder().msg("User didn't exist").build(),
-                        HttpStatus.BAD_REQUEST));
+                        UserRes.builder().msg("Wrong session token").build(),
+                        HttpStatus.UNAUTHORIZED));
     }
 
     @PostMapping(path = "restore", consumes = "application/json", produces = "application/json")
     public ResponseEntity<UserRes> restore(@Valid @RequestBody UserReq req) {
         return (service.exist(req.email) && service.restorePassword(req.email)) ?
                 new ResponseEntity<>(UserRes.builder().msg("Restore email was send").build(), HttpStatus.OK) :
-                new ResponseEntity<>(UserRes.builder().msg("Can't restore password").build(), HttpStatus.BAD_REQUEST);
+                new ResponseEntity<>(UserRes.builder().msg("Internal error, try later").build(), HttpStatus.BAD_REQUEST);
     }
 }

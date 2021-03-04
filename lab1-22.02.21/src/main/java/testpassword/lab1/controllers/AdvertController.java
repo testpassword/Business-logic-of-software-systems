@@ -24,12 +24,14 @@ public class AdvertController {
     @Autowired private UserService userService;
     @Autowired private AdvertService advertService;
 
-    @GetMapping(path = "getAll", produces = "application/json")
+    @GetMapping(path = "all", produces = "application/json")
     public ResponseEntity<AdvertRes> getAll() {
-        return new ResponseEntity<>(AdvertRes.builder().adverts(advertService.getAll()).build(), HttpStatus.OK);
+        return new ResponseEntity<>(
+                AdvertRes.builder().adverts(advertService.getAll()).build(),
+                HttpStatus.OK);
     }
 
-    @GetMapping(path = "get/{userId}", produces = "application/json")
+    @GetMapping(path = "user/{userId}", produces = "application/json")
     public ResponseEntity<AdvertRes> getForUser(@PathVariable long userId) {
         return userService.get(userId)
                 .map(u -> new ResponseEntity<>(
@@ -40,14 +42,14 @@ public class AdvertController {
                         HttpStatus.BAD_REQUEST));
     }
 
-    @PostMapping(path = "getFiltered", consumes = "application/json", produces = "application/json")
+    @PostMapping(path = "filtered", consumes = "application/json", produces = "application/json")
     public ResponseEntity<AdvertRes> get(@Valid @RequestBody AdvertReq req) {
         return new ResponseEntity<>(
                 AdvertRes.builder().adverts(
                         Arrays.stream(req.advertsIds)
                                 .mapToObj(advertService::get)
                                 .filter(Objects::nonNull)
-                                .collect(Collectors.toSet()))
+                                .collect(Collectors.toList()))
                         .build(),
                 HttpStatus.ACCEPTED);
     }
@@ -68,7 +70,7 @@ public class AdvertController {
                                     AdvertRes.builder().msg("Your advert was publish!").build(),
                                     HttpStatus.CREATED) :
                             new ResponseEntity<>(
-                                    AdvertRes.builder().msg("We found a problems while moderating. Please read out rules").build(),
+                                    AdvertRes.builder().msg("We found a problems while moderating. Please read our rules").build(),
                                     HttpStatus.I_AM_A_TEAPOT);
                         }
                 ).orElse(new ResponseEntity<>(AdvertRes.builder().msg("User didn't exist").build(), HttpStatus.UNAUTHORIZED));

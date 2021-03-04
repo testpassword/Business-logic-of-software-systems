@@ -1,5 +1,5 @@
 curl -X POST \
   -H "Content-Type:application/json" \
-  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrZWtAbG9sLnJ1Iiwicm9sZXMiOlsiVVNFUiJdLCJpYXQiOjE2MTQzNDQyMzgsImV4cCI6MTYxNDk0OTAzOH0.pgDyozBiuev_fduTouBh9d2DVHLzvqwP7l2zS-Fm817-PfuyGfTO8R1QFNdr4IpgfPfQFEZmxSp_Za5Vd9cd8A" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrZWtAbG9sLnJ1Iiwicm9sZXMiOlsiVVNFUiJdLCJpYXQiOjE2MTQ4MTAwMjUsImV4cCI6MTYxNTQxNDgyNX0.1BgERoVQj1Ov3za04WqhFjeFnpApo4Dr58FKxWLrVzLL1a6yUIm-gX3lJYbOTthGIxa4cky25SwwmGVJ8j-uyw" \
   -d '{"email": "kek@lol.ru"}' \
   http://localhost:8080/user/restore

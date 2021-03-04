@@ -1,18 +1,20 @@
 package testpassword.lab1.models;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import testpassword.lab1.serializers.UserSerializer;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
-@Data @Entity @Table(name = "users")
+@Data @Entity @Table(name = "users") @JsonSerialize(using = UserSerializer.class)
 public class User implements Serializable, UserDetails {
 
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
@@ -22,7 +24,7 @@ public class User implements Serializable, UserDetails {
     @Nullable @Email private String email;
     @Nullable private String password;
     @Nullable private String name;
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER) private Set<Advert> adverts;
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER) private List<Advert> adverts;
 
     public User() {}
 

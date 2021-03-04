@@ -21,7 +21,7 @@ public class JWTFilter extends GenericFilterBean {
     @Override public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         val token = jwtUtil.resolveToken((HttpServletRequest) request);
         if (token != null && jwtUtil.validateToken(token))
-            Optional.of(jwtUtil.getAuthentication(token)).ifPresent(auth -> SecurityContextHolder.getContext().setAuthentication(auth));
+            Optional.ofNullable(jwtUtil.getAuthentication(token)).ifPresent(auth -> SecurityContextHolder.getContext().setAuthentication(auth));
         chain.doFilter(request, response);
     }
 }
