@@ -17,18 +17,17 @@ import java.util.stream.StreamSupport;
         this.repo = repo;
     }
 
-    //просто заглушка, здесь может быть любая логика
-    private boolean moderate(Advert a) { return new Random().nextInt(10 - 1) + 1 < 8; }
-
     public boolean add(Advert a) {
-        if (a.getUser() == null || !this.moderate(a)) return false;
+        if (a.getUser() == null || !ModeratorService.moderate(a)) return false;
         else {
             this.save(a);
             return true;
         }
     }
 
-    public List<Advert> getAll() { return StreamSupport.stream(repo.findAll().spliterator(), false).collect(Collectors.toList()); }
+    public List<Advert> getAll() {
+        return StreamSupport.stream(repo.findAll().spliterator(), false).collect(Collectors.toList());
+    }
 
     public Advert get(long id) { return repo.getByAdvertId(id); }
 
