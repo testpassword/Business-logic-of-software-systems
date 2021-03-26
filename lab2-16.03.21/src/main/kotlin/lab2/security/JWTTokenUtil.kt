@@ -31,14 +31,13 @@ import javax.servlet.http.HttpServletRequest
         TODO()
     }
 
-    infix fun validate(token: String): Boolean = Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body.expiration.before(Date())
+    infix fun validate(token: String): Boolean =
+        Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body.expiration.before(Date())
 
     infix fun isExpired(token: String): Boolean = getExpirationDate(token).before(Date())
 
     infix fun resolve(req: HttpServletRequest): String =
-        req.getHeader("Authorization").let {
-            if (it.startsWith("Bearer ")) it.substring(7) else ""
-        }
+        req.getHeader("Authorization")?.let { if (it.startsWith("Bearer ")) it.substring(7) else it } ?: ""
 
     infix fun getAuthentication(token: String): Authentication =
         userDetails.loadUserByUsername(getUsername(token)).let { UsernamePasswordAuthenticationToken(it, "", it.authorities) }

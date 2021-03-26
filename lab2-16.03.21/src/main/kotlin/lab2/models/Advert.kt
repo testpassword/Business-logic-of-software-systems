@@ -2,6 +2,7 @@ package lab2.models
 
 import javax.persistence.*
 
+@Entity @Table(name = "adverts")
 class Advert {
 
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "advert_seq_gen")

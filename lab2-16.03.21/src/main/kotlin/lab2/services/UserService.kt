@@ -36,11 +36,9 @@ import org.springframework.transaction.annotation.Transactional
 
     fun getAll(): List<User> = repo.findAll().toList()
 
-    infix operator fun get(id: Long) = repo.getByUserId(id)
+    infix operator fun get(id: Long) = repo getByUserId id
 
-    override infix fun loadUserByUsername(email: String) = repo.getByEmail(email)
-
-    infix fun exist(email: String) = repo.existsByEmail(email)
+    override infix fun loadUserByUsername(email: String) = repo getByEmail email
 
     @Transactional infix fun save(user: User) = repo.save(user)
 }

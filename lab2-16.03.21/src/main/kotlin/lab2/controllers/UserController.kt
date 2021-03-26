@@ -38,10 +38,9 @@ class UserController {
     @PostMapping(path = ["login"], consumes = ["application/json"], produces = ["application/json"])
     fun login(@Valid @RequestBody req: UserReq) =
         try {
-            (service loadUserByUsername req.email).let {
-                auth.authenticate(UsernamePasswordAuthenticationToken(req.email, req.password))
-                ok(UserRes(token = token.generate(it.email, listOf("USER"))))
-            }
+            service loadUserByUsername req.email
+            auth.authenticate(UsernamePasswordAuthenticationToken(req.email, req.password))
+            ok(UserRes(token = token.generate(req.email, listOf("USER"))))
         } catch (e: Exception) {
             bad(UserRes(msg = when(e) {
                 is EmptyResultDataAccessException -> "User didn't exist. Check email and password"
@@ -56,33 +55,22 @@ class UserController {
             service loadUserByUsername req.email
             ResponseEntity(UserRes(msg = "User ${req.email} already exist"), HttpStatus.CONFLICT)
         } catch (e: EmptyResultDataAccessException) {
-            service.add(req.email, req.password, req.username)
+            service.add(req.email, req.password, req.name)
             auth.authenticate(UsernamePasswordAuthenticationToken(req.email, req.password))
             ResponseEntity(UserRes(token = token.generate(req.email, arrayListOf("USER"))), HttpStatus.CREATED)
-        }
-
-    @PatchMapping(path = ["modify"], consumes = ["application/json"], produces = ["application/json"])
-    fun modify(@Valid @RequestBody req: UserReq, raw: HttpServletRequest) =
-        try {
-            (service loadUserByUsername req.email).let {
-                if (req.email.isNotBlank() && service.exist(req.email)) ResponseEntity(UserRes(msg = "Mail is busy"), HttpStatus.CONFLICT)
-                else {
-                    if (req.username.isNotBlank()) it.name = req.username
-                    if (req.password.isNotBlank()) it.password = req.password
-                    service.save(it)
-                    ResponseEntity(UserRes(token = token.generate(req.email, listOf("USER"))), HttpStatus.ACCEPTED)
-                }
-            }
-        } catch (e: EmptyResultDataAccessException) {
-            bad(UserRes(msg = "User didn't exist"))
         }
 
     @DeleteMapping(path = ["delete"], consumes = ["application/json"], produces = ["application/json"])
     fun delete(@Valid @RequestBody req: UserReq, raw: HttpServletRequest) =
         try {
+            service loadUserByUsername (token decode raw)
             auth.authenticate(UsernamePasswordAuthenticationToken(req.email, req.password))
             service delete req.email
-        } catch (e: AuthenticationException) {
-            ResponseEntity(UserRes("Bad password"), HttpStatus.UNAUTHORIZED)
+        } catch (e: Exception) {
+            when (e) {
+                is AuthenticationException -> ResponseEntity(UserRes(msg = "Bad password"), HttpStatus.UNAUTHORIZED)
+                is EmptyResultDataAccessException -> bad(UserRes(msg = "Token expired"))
+                else -> bad(UserRes(msg = "Unexpected exception, try later: $e"))
+            }
         }
 }

@@ -32,7 +32,7 @@ class User: UserDetails {
 
     override fun getPassword(): String = password
 
-    fun setPassword(password: String) { this.password = password }
+    infix fun setPassword(password: String) { this.password = password }
 
     override fun getUsername(): String = email
 
@@ -44,6 +44,7 @@ class User: UserDetails {
 
     override fun isEnabled(): Boolean = true
 }
+
 
 class UserSerializer(t: Class<User>): StdSerializer<User>(t) {
 

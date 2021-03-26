@@ -23,8 +23,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-mail:2.4.3")
     implementation("io.jsonwebtoken:jjwt:0.9.1")
-    implementation("org.springdoc:springdoc-openapi-ui")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-cbor")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     runtimeOnly("org.postgresql:postgresql")

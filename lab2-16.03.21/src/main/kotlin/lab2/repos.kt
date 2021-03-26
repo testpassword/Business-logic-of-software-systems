@@ -6,13 +6,13 @@ import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 
 @Repository interface UserRepo: CrudRepository<User, Long> {
-    fun getByEmail(email: String): User
 
-    fun getByUserId(id: Long): User
+    infix fun getByEmail(email: String): User
 
-    fun existsByEmail(email: String): Boolean
+    infix fun getByUserId(id: Long): User
 }
 
 @Repository interface AdvertRepo: CrudRepository<Advert, Long> {
-    fun getByAdvertId(id: Long): Advert
+
+    infix fun getByAdvertId(id: Long): Advert
 }

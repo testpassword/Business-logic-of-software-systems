@@ -5,9 +5,9 @@ import lab2.models.User
 
 data class UserReq(val email: String = "",
                    val password: String = "",
-                   val username: String) {
+                   val name: String = "") {
 
-    fun toUser() = User(email, password).apply { this.name = username }
+    fun toUser() = User(email, password).apply { this.name = this@UserReq.name }
 }
 
 //TODO: сериализация

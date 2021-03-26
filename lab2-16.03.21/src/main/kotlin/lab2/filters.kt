@@ -24,8 +24,13 @@ import javax.servlet.http.HttpServletResponse
 class JWTFilter(val jwtToken: JWTTokenUtil): GenericFilterBean() {
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        jwtToken.resolve(request as HttpServletRequest).also {
-            if (jwtToken.validate(it)) SecurityContextHolder.getContext().authentication = jwtToken.getAuthentication(it)
+        (jwtToken resolve (request as HttpServletRequest)).also {
+            try {
+                jwtToken validate it
+                SecurityContextHolder.getContext().authentication = jwtToken.getAuthentication(it)
+            } catch (e: Exception) {
+                println("token for this request didn't required")
+            }
         }
         chain.doFilter(request, response)
     }
