@@ -46,7 +46,7 @@ class User: UserDetails {
 }
 
 
-class UserSerializer(t: Class<User>): StdSerializer<User>(t) {
+class UserSerializer(t: Class<User>? = null): StdSerializer<User>(t) {
 
     override fun serialize(u: User, gen: JsonGenerator, provider: SerializerProvider) {
         gen.apply {

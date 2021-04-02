@@ -20,7 +20,7 @@ class Advert {
     var name: String = ""
     var mobileNumber: String = ""
     var isRealtor: Boolean = false
-    var image: String = ""
+    var image: String = "" // base64 string
 
     enum class TYPE_OF_ADVERT { SALE, RENT }
 

@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletRequest
     @Value("\${jwt.validity}") private val VALIDITY: Long = 0
     @Autowired private lateinit var userDetails: UserService
 
-    fun generate(username: String, roles: List<String>): String =
+    fun generate(username: String, roles: List<String>) =
         Jwts.claims().setSubject(username).let {
             it["roles"] = roles
             val now = Date()
@@ -27,27 +27,22 @@ import javax.servlet.http.HttpServletRequest
                 .signWith(SignatureAlgorithm.HS512, KEY).compact()
         }
 
-    fun extend() {
-        TODO()
-    }
+    infix fun validate(token: String) = Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body.expiration.before(Date())
 
-    infix fun validate(token: String): Boolean =
-        Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body.expiration.before(Date())
+    infix fun isExpired(token: String) = getExpirationDate(token).before(Date())
 
-    infix fun isExpired(token: String): Boolean = getExpirationDate(token).before(Date())
-
-    infix fun resolve(req: HttpServletRequest): String =
+    infix fun resolve(req: HttpServletRequest) =
         req.getHeader("Authorization")?.let { if (it.startsWith("Bearer ")) it.substring(7) else it } ?: ""
 
-    infix fun getAuthentication(token: String): Authentication =
+    infix fun getAuthentication(token: String) =
         userDetails.loadUserByUsername(getUsername(token)).let { UsernamePasswordAuthenticationToken(it, "", it.authorities) }
 
-    infix fun getUsername(token: String): String = getClaim(token) { it.subject }
+    infix fun getUsername(token: String) = getClaim(token) { it.subject }
 
-    infix fun getExpirationDate(token: String): Date = getClaim(token) { it.expiration }
+    infix fun getExpirationDate(token: String) = getClaim(token) { it.expiration }
 
     fun <T> getClaim(token: String, claimsResolver: Function<Claims, T>): T =
         claimsResolver.apply(Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body)
 
-    infix fun decode(req: HttpServletRequest): String = getUsername(resolve(req))
+    infix fun decode(req: HttpServletRequest) = getUsername(resolve(req))
 }
