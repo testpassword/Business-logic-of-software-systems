@@ -5,14 +5,10 @@ import lab2.models.User
 
 data class UserReq(val email: String = "",
                    val password: String = "",
-                   val name: String = "") {
-
-    fun toUser() = User(email, password).apply { this.name = this@UserReq.name }
-}
+                   val name: String = "")
 
 //TODO: сериализация
-data class AdvertReq(val advertsIds: Array<Long> = emptyArray(),
-                     val userId: Long = 0,
+data class AdvertReq(val userId: Long = 0,
                      val cost: Int,
                      val typeOfAdvert: Advert.TYPE_OF_ADVERT = Advert.TYPE_OF_ADVERT.SALE,
                      val typeOfEstate: Advert.TYPE_OF_ESTATE = Advert.TYPE_OF_ESTATE.FLAT,

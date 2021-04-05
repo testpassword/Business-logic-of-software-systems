@@ -1,6 +1,5 @@
-package lab2
+package lab2.security
 
-import lab2.security.JWTTokenUtil
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.GenericFilterBean
@@ -21,18 +20,12 @@ import javax.servlet.http.HttpServletResponse
         })
 }
 
-class JWTFilter(val jwt: JWTTokenUtil): GenericFilterBean() {
+class JWTFilter(private val jwt: JWTTokenUtil): GenericFilterBean() {
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        (jwt resolve (request as HttpServletRequest)).also {
-
-            try {
-                jwt validate it
-                SecurityContextHolder.getContext().authentication = jwt.getAuthentication(it)
-            } catch (e: Exception) {
-                println("token for this request didn't required")
-            }
-        }
+        val token = jwt resolve (request as HttpServletRequest)
+        if (token != null && (jwt validate token) && jwt.isExpired(token).not())
+            (jwt getAuthentication token).let { SecurityContextHolder.getContext().authentication = it }
         chain.doFilter(request, response)
     }
 }

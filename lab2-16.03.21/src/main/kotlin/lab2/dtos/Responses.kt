@@ -7,5 +7,5 @@ data class AdvertRes(var adverts: List<Advert> = emptyList(),
                      var msg: String = "")
 
 data class UserRes(var token: String = "",
-                   var msg: String = "",
-                   var users: List<User> = emptyList())
+                   var users: List<User> = emptyList(),
+                   var msg: String = "")

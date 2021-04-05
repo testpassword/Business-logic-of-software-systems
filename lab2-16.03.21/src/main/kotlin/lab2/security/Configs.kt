@@ -1,5 +1,6 @@
 package lab2
 
+import lab2.security.JWTFilter
 import lab2.security.JWTTokenUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean

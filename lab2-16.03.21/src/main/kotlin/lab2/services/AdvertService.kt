@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service
             true
         } else false
 
-    infix fun modify(modified: Map<String, String>) =
-        repo.save(get(modified["advertId"]!!.toLong()).apply {
+    fun modify(advertId: Long, modified: Map<String, String>) =
+        repo.save(get(advertId).apply {
             modified["cost"]?.let { cost = it.toInt() }
             modified["typeOfAdvert"]?.let { typeOfAdvert = Advert.TYPE_OF_ADVERT.valueOf(it) }
             modified["typeOfEstate"]?.let { typeOfEstate = Advert.TYPE_OF_ESTATE.valueOf(it) }

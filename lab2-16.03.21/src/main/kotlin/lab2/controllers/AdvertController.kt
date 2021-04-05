@@ -1,6 +1,6 @@
 package lab2.controllers
 
-import com.fasterxml.jackson.databind.JsonMappingException
+import io.jsonwebtoken.JwtException
 import lab2.dtos.AdvertReq
 import lab2.dtos.AdvertRes
 import lab2.security.JWTTokenUtil
@@ -12,7 +12,7 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.http.ResponseEntity.ok
+import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -29,94 +29,76 @@ class AdvertController {
     fun bad(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.BAD_REQUEST)
 
     @GetMapping(path = ["all"], produces = ["application/json"])
-    fun getAll() = ok(AdvertRes(adverts = advertService.getAll()))
+    fun getAll() =
+        ok {
+            adverts = advertService.getAll()
+        }
 
-    @GetMapping(path = ["user/{userId}"], produces = ["application/json"])
+    @GetMapping(path = ["{advertId}"], produces = ["application/json"])
+    fun getAdvert(@PathVariable advertId: Long) =
+        ok {
+            adverts = listOf(advertService[advertId])
+        }
+
+    @GetMapping(path = ["forUser/{userId}"], produces = ["application/json"])
     fun getForUser(@PathVariable userId: Long) =
-        try {
-            ok {
-                adverts = userService[userId].adverts
-            }
-        } catch (e: EmptyResultDataAccessException) {
-            bad {
-                msg = "Can't find user with requested id"
-            }
+        ok {
+            adverts = userService[userId].adverts
         }
 
     @GetMapping(path=["spec"], produces = ["application/json"])
     fun getSpecificAdverts(@RequestParam ids: String) =
-        try {
-            ok {
-                adverts = ids.split(";")
-                    .map {
-                        try {
-                            advertService[it.toLong()]
-                        } catch (e: Exception) {
-                            null
-                        }
-                    }.filterNotNull()
-            }
-        } catch (e: Exception) {
-            bad {
-                msg = "Unexpected exception found: $e"
+        ok {
+            adverts = ids.split(";").mapNotNull {
+                try {
+                    advertService[it.toLong()]
+                } catch (e: Exception) {
+                    null
+                }
             }
         }
 
     @PostMapping(path = ["add"], consumes = ["application/json"], produces = ["application/json"])
     fun add(@Valid @RequestBody req: AdvertReq, raw: HttpServletRequest) =
-        try {
+        ok {
+            val advert = req.toAdvert()
             if (req.mobileNumber.isBlank() || req.name.isBlank())
-                bad {
-                    msg = "Use should set mobile phone or name"
-                }
-            else {
-                val advert = req.toAdvert()
-                advert.user = userService.loadUserByUsername(token decode raw)
-                if (advertService add advert) ResponseEntity(AdvertRes(msg = "Your advert was publish!"), HttpStatus.CREATED)
-                else bad {
-                    msg = "We found a problems while moderating. Please read our rules"
-                }
-            }
-        } catch (e: EmptyResultDataAccessException) {
-            ResponseEntity(AdvertRes(msg = "User didn't exist"), HttpStatus.UNAUTHORIZED)
+                throw Exception("Required mobileNumber and name for advert")
+            if (advert.user.userId == userService.loadUserByUsername(token decode raw).userId)
+                throw Exception("You isn't a owner of this advert")
+            msg = if (advertService add advert) "Your advert was published" else "We found a problems while moderating. Please read our rules"
         }
 
-    @PutMapping(path = ["modify"], consumes = ["application/json"], produces = ["application/json"])
-    fun modity(req: HttpEntity<String>, raw: HttpServletRequest) =
-        try {
-            ok {
-                userService loadUserByUsername (token decode raw)
-                val modifiedFields = JSONObject(req.body).toMap().mapValues { it.toString() }
-                if (modifiedFields.containsKey("advertId").not()) throw JsonMappingException("")
-                advertService modify modifiedFields
-                msg = "Successfully modified"
-            }
-        } catch (e: Exception) {
-            /*TODO: использовать общий механизм перехвата исключений определённого типа
-            EmptyResultDataAccessException
-            IllegalArgumentException
-            все остальные
-            json ключ отсутсвует
-             */
+    @PutMapping(path = ["{advertId}"], consumes = ["application/json"], produces = ["application/json"])
+    fun modify(@PathVariable advertId: Long, req: HttpEntity<String>, raw: HttpServletRequest) =
+        ok {
+            userService loadUserByUsername (token decode raw)
+            advertService.modify(advertId, JSONObject(req.body).toMap().mapValues { it.toString() })
+            msg = "Successfully modified"
         }
 
     @DeleteMapping(path = ["delete"], consumes = ["application/json"], produces = ["application/json"])
-    fun delete(@Valid @RequestBody req: AdvertReq, raw: HttpServletRequest): ResponseEntity<AdvertRes> =
-        try {
-            ok {
-                req.advertsIds
-                    .map(advertService::get)
-                    .filter { it.user.userId == userService.loadUserByUsername(token decode raw).userId }
-                    .forEach(advertService::delete)
-                msg = "Successfully deleted"
-            }
-        } catch (e: Exception) {
-            bad {
-                msg = when (e) {
-                    is IllegalArgumentException -> "You should specify token for this operation"
-                    is EmptyResultDataAccessException -> "Owner of advert didn't exist"
-                    else -> "Unexpected exception found: $e"
-                }
+    fun delete(@RequestParam ids: String, @Valid @RequestBody req: AdvertReq, raw: HttpServletRequest) =
+        ok {
+            ids.split(";")
+                .map { advertService[it.toLong()] }
+                .filter { it.user.userId == userService.loadUserByUsername(token decode raw).userId }
+                .forEach(advertService::delete)
+            msg = "Successfully deleted"
+        }
+
+    @ExceptionHandler(Exception::class)
+    fun handleErrors(req: HttpServletRequest, e: Exception) =
+        bad {
+            msg = when (e) {
+                is JwtException -> "Bad token or didn't presented"
+                is AuthenticationException -> "Password incorrect"
+                is EmptyResultDataAccessException -> "Entity didn't exist: ${e.stackTraceToString()}"
+                else -> """
+                    Unexpected exception, try later or contact support with this message
+                    $e
+                    $req
+                    """.trimIndent()
             }
         }
 }

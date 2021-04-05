@@ -1,5 +1,6 @@
 package lab2.controllers
 
+import io.jsonwebtoken.JwtException
 import lab2.dtos.UserReq
 import lab2.dtos.UserRes
 import lab2.security.JWTTokenUtil
@@ -27,27 +28,35 @@ class UserController {
     fun bad(block: UserRes.() -> Unit) = ResponseEntity(UserRes().apply(block), HttpStatus.BAD_REQUEST)
 
     @GetMapping(path = ["all"], produces = ["application/json"])
-    fun getAll() = ok {
+    fun getAll() =
+        ok {
             users = service.getAll()
         }
 
-    @GetMapping(path = ["{id}"], produces = ["application/json"])
-    fun getUser(@PathVariable id: Long) =
+    @GetMapping(path = ["{userId}"], produces = ["application/json"])
+    fun getUser(@PathVariable userId: Long) =
         ok {
-            users = listOf(service[id])
+            users = listOf(service[userId])
         }
 
     @GetMapping(path=["spec"], produces = ["application/json"])
     fun getSpecificUsers(@RequestParam ids: String) =
         ok {
-            users = ids.split(";")
-                .map {
-                    try {
-                        service[it.toLong()]
-                    } catch (e: Exception) {
-                        null
-                    }
-                }.filterNotNull()
+            users = ids.split(";").mapNotNull {
+                try {
+                    service[it.toLong()]
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        }
+
+    @PostMapping(path = ["extendToken"], produces = ["application/json"])
+    fun extendToken(raw: HttpServletRequest) =
+        ok {
+            if (jwt isExpired (jwt resolve raw)!!)
+                token = jwt.generate((service loadUserByUsername (jwt decode raw)).email, listOf("USER"))
+            else msg = "You already have actual token"
         }
 
     @PostMapping(path = ["login"], consumes = ["application/json"], produces = ["application/json"])
@@ -74,7 +83,7 @@ class UserController {
         ok {
             val email = service.loadUserByUsername(jwt decode raw).email
             auth.authenticate(UsernamePasswordAuthenticationToken(email, req.password))
-            service delete req.email
+            service delete email
             msg = "Successfully delete account"
         }
 
@@ -82,9 +91,9 @@ class UserController {
     fun handleErrors(req: HttpServletRequest, e: Exception) =
         bad {
             msg = when (e) {
+                is JwtException -> "Bad token or didn't presented"
                 is AuthenticationException -> "Password incorrect"
                 is EmptyResultDataAccessException -> "User didn't exist. Check email and password"
-                is IllegalArgumentException -> "You should specify token for this operation"
                 else -> """
                     Unexpected exception, try later or contact support with this message
                     $e

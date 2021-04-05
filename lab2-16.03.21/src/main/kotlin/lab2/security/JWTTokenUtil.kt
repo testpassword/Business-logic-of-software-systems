@@ -1,6 +1,7 @@
 package lab2.security
 
 import io.jsonwebtoken.Claims
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import lab2.services.UserService
@@ -32,10 +33,14 @@ import javax.servlet.http.HttpServletRequest
     infix fun isExpired(token: String) = getExpirationDate(token).before(Date())
 
     infix fun resolve(req: HttpServletRequest) =
-        req.getHeader("Authorization")?.let { if (it.startsWith("Bearer ")) it.substring(7) else it } ?: ""
+        req.getHeader("Authorization")?.let {
+            if (it.startsWith("Bearer ") && isExpired(it).not()) it.substring(7) else null
+        }
 
     infix fun getAuthentication(token: String) =
-        userDetails.loadUserByUsername(getUsername(token)).let { UsernamePasswordAuthenticationToken(it, "", it.authorities) }
+        userDetails
+            .loadUserByUsername(getUsername(token))
+            .let { UsernamePasswordAuthenticationToken(it, "", it.authorities) }
 
     infix fun getUsername(token: String) = getClaim(token) { it.subject }
 
@@ -44,5 +49,10 @@ import javax.servlet.http.HttpServletRequest
     fun <T> getClaim(token: String, claimsResolver: Function<Claims, T>): T =
         claimsResolver.apply(Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body)
 
-    infix fun decode(req: HttpServletRequest) = getUsername(resolve(req))
+    infix fun decode(req: HttpServletRequest) =
+        try {
+            getUsername(resolve(req)!!)
+        } catch (e: NullPointerException) {
+            throw JwtException("bad token")
+        }
 }
