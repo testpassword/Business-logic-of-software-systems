@@ -1,4 +1,4 @@
-package lab2.services
+package lab2.utils
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component
 import javax.mail.Message
 import javax.mail.internet.InternetAddress
 
-@Component class EmailService {
+@Component object Postman {
 
     @Value("\${spring.mail.username}") private lateinit var from: String
     @Autowired private lateinit var sender: JavaMailSender
 
-    fun send(to: String, subject: String, body: String) =
+    operator fun invoke(to: String, subject: String, body: String) =
         sender.send {
             it.setRecipient(Message.RecipientType.TO, InternetAddress(to))
             it.setFrom(from)

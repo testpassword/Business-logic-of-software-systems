@@ -19,6 +19,7 @@ class User: UserDetails {
     var email: @Email String = ""
     private var password: String = ""
     var name: String = ""
+    @Enumerated(EnumType.STRING) var status: STATUS = STATUS.ACTIVE
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER) val adverts: List<Advert> = emptyList()
 
     constructor()
@@ -28,7 +29,7 @@ class User: UserDetails {
         this.password = password
     }
 
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf(SimpleGrantedAuthority("User"))
+    override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf(SimpleGrantedAuthority("USER"))
 
     override fun getPassword(): String = password
 
@@ -36,27 +37,28 @@ class User: UserDetails {
 
     override fun getUsername(): String = email
 
-    override fun isAccountNonExpired(): Boolean = true
+    override fun isAccountNonExpired(): Boolean = status != STATUS.BANNED
 
-    override fun isAccountNonLocked(): Boolean = true
+    override fun isAccountNonLocked(): Boolean = status != STATUS.LOCKED
 
-    override fun isCredentialsNonExpired(): Boolean = true
+    override fun isCredentialsNonExpired(): Boolean = isAccountNonLocked
 
-    override fun isEnabled(): Boolean = true
+    override fun isEnabled(): Boolean = status != STATUS.DELETED
+
+    enum class STATUS { LOCKED, BANNED, ACTIVE, DELETED }
 }
 
 
 class UserSerializer(t: Class<User>? = null): StdSerializer<User>(t) {
 
-    override fun serialize(u: User, gen: JsonGenerator, provider: SerializerProvider) {
-        gen.apply {
+    override fun serialize(u: User, gen: JsonGenerator, provider: SerializerProvider) =
+        with(gen) {
             writeStartObject()
             writeNumberField("userId", u.userId)
             writeFieldName("adverts")
             writeStartArray()
-            u.adverts.forEach { writeNumber(it.advertId) }
+            u.adverts.map(Advert::advertId).forEach { writeNumber(it) }
             writeEndArray()
             writeEndObject()
         }
-    }
 }

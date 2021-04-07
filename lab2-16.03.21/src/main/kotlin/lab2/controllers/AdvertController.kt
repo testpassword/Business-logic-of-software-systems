@@ -3,6 +3,7 @@ package lab2.controllers
 import io.jsonwebtoken.JwtException
 import lab2.dtos.AdvertReq
 import lab2.dtos.AdvertRes
+import lab2.dtos.UserRes
 import lab2.security.JWTTokenUtil
 import lab2.services.AdvertService
 import lab2.services.UserService
@@ -20,13 +21,13 @@ import javax.validation.Valid
 @RestController @RequestMapping(path = ["/advert"])
 class AdvertController {
 
-    @Autowired private lateinit var token: JWTTokenUtil
+    @Autowired private lateinit var jwt: JWTTokenUtil
     @Autowired private lateinit var userService: UserService
     @Autowired private lateinit var advertService: AdvertService
 
-    fun ok(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.OK)
+    private fun ok(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.OK)
 
-    fun bad(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.BAD_REQUEST)
+    private fun bad(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.BAD_REQUEST)
 
     @GetMapping(path = ["all"], produces = ["application/json"])
     fun getAll() =
@@ -64,7 +65,7 @@ class AdvertController {
             val advert = req.toAdvert()
             if (req.mobileNumber.isBlank() || req.name.isBlank())
                 throw Exception("Required mobileNumber and name for advert")
-            if (advert.user.userId == userService.loadUserByUsername(token decode raw).userId)
+            if (advert.user.userId == (userService loadUserByUsername (jwt decode raw)).userId)
                 throw Exception("You isn't a owner of this advert")
             msg = if (advertService add advert) "Your advert was published" else "We found a problems while moderating. Please read our rules"
         }
@@ -72,7 +73,7 @@ class AdvertController {
     @PutMapping(path = ["{advertId}"], consumes = ["application/json"], produces = ["application/json"])
     fun modify(@PathVariable advertId: Long, req: HttpEntity<String>, raw: HttpServletRequest) =
         ok {
-            userService loadUserByUsername (token decode raw)
+            userService loadUserByUsername (jwt decode raw)
             advertService.modify(advertId, JSONObject(req.body).toMap().mapValues { it.toString() })
             msg = "Successfully modified"
         }
@@ -82,7 +83,7 @@ class AdvertController {
         ok {
             ids.split(";")
                 .map { advertService[it.toLong()] }
-                .filter { it.user.userId == userService.loadUserByUsername(token decode raw).userId }
+                .filter { it.user.userId == userService.loadUserByUsername(jwt decode raw).userId }
                 .forEach(advertService::delete)
             msg = "Successfully deleted"
         }

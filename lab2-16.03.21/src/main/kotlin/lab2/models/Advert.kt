@@ -21,8 +21,11 @@ class Advert {
     var mobileNumber: String = ""
     var isRealtor: Boolean = false
     var image: String = "" // base64 string
+    @Enumerated(EnumType.STRING) var status: STATUS = STATUS.ON_MODERATION
 
     enum class TYPE_OF_ADVERT { SALE, RENT }
 
     enum class TYPE_OF_ESTATE { FLAT, NEWFLAT, ROOM, HOUSE, COTTAGE, DACHA, TOWNHOUSE, LAND }
+
+    enum class STATUS { APPROVED, ON_MODERATION, DECLINED }
 }
