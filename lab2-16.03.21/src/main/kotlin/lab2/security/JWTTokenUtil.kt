@@ -30,11 +30,12 @@ import javax.servlet.http.HttpServletRequest
 
     infix fun validate(token: String) = Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body.expiration.before(Date())
 
+    // TODO: устранить баг
     infix fun isExpired(token: String) = getExpirationDate(token).before(Date())
 
     infix fun resolve(req: HttpServletRequest) =
         req.getHeader("Authorization")?.let {
-            if (it.startsWith("Bearer ") && isExpired(it).not()) it.substring(7) else null
+            if (it.startsWith("Bearer ")/* && isExpired(it).not()*/) it.substring(7) else null
         }
 
     infix fun getAuthentication(token: String) =
@@ -55,4 +56,6 @@ import javax.servlet.http.HttpServletRequest
         } catch (e: NullPointerException) {
             throw JwtException("bad token")
         }
+
+    infix fun getRoles(token: String) = getClaim(token) { it["roles"] } as List<String>
 }

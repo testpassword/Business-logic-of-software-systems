@@ -29,7 +29,7 @@ class User: UserDetails {
         this.password = password
     }
 
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf(SimpleGrantedAuthority("USER"))
+    override fun getAuthorities() = mutableListOf(SimpleGrantedAuthority("USER"))
 
     override fun getPassword(): String = password
 

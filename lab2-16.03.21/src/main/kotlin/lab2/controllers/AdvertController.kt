@@ -3,7 +3,6 @@ package lab2.controllers
 import io.jsonwebtoken.JwtException
 import lab2.dtos.AdvertReq
 import lab2.dtos.AdvertRes
-import lab2.dtos.UserRes
 import lab2.security.JWTTokenUtil
 import lab2.services.AdvertService
 import lab2.services.UserService

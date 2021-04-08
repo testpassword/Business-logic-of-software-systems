@@ -24,6 +24,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-jta-atomikos:2.4.4")
     // log
     implementation("org.slf4j:slf4j-api:1.7.30")
     implementation("io.github.microutils:kotlin-logging:1.12.5")

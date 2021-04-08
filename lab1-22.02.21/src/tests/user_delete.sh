@@ -1,5 +1,5 @@
 curl -X DELETE \
   -H "Content-Type:application/json" \
-  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrZWtAbG9sLnJ1Iiwicm9sZXMiOlsiVVNFUiJdLCJpYXQiOjE2MTc2MzExMzQsImV4cCI6MTYxODIzNTkzNH0.GyDXrxSh0SetcK4K_NL8zMcQ8-13YuSj-Y0cVjzSsBXyx-zlIYkEe9T8fOIcqAi-8P0t6aIRIHbzQW8dzyf3lg" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrZWtAbG9sLnJ1Iiwicm9sZXMiOlsiVVNFUiJdLCJpYXQiOjE2MTc5MDQ5OTcsImV4cCI6MTYxNzkwNTA4M30.P0yMuik2VMTeHwPqG6NfO_Doyy_otwywwyEUtLBNn4W6GGPjCT6gzQstENtKsRVwhDFs57l5hkMgpkQfSAujwQ" \
   -d '{"password": "root"}' \
   http://localhost:17502/user/delete

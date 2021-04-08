@@ -17,11 +17,13 @@ private val LOG = KotlinLogging.logger {}
 
     @Autowired private lateinit var repo: UserRepo
     @Autowired private lateinit var encoder: BCryptPasswordEncoder
+    @Autowired private lateinit var postman: Postman
 
     @Transactional fun add(email: String, password: String, name: String) =
         User(email, encoder.encode(password)).apply {
+            repo.save(this)
             try {
-                Postman(email, "Register", "yeah!")
+                postman(email, "Register", "yeah!")
             } catch (e: MailSendException) {
                 LOG.error { e.stackTraceToString() }
             }
@@ -30,7 +32,7 @@ private val LOG = KotlinLogging.logger {}
     infix fun delete(email: String) {
         repo.delete(repo.getByEmail(email))
         try {
-            Postman(email, "Goodbye", ":(")
+            postman(email, "Goodbye", ":(")
         } catch (e: MailSendException) {
             LOG.error { e.stackTraceToString() }
         }
@@ -40,7 +42,7 @@ private val LOG = KotlinLogging.logger {}
         with(loadUserByUsername(email)) {
             try {
                 val tempPassword = (('a'..'z') + ('A'..'Z') + ('0'..'9')).shuffled().take(12).joinToString("")
-                Postman(email,
+                postman(email,
                     "Temporary password",
                     """
                     You temporary password: ${tempPassword}.

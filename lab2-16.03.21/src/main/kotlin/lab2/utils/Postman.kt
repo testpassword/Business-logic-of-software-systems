@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 import javax.mail.Message
 import javax.mail.internet.InternetAddress
 
-@Component object Postman {
+@Component class Postman {
 
     @Value("\${spring.mail.username}") private lateinit var from: String
     @Autowired private lateinit var sender: JavaMailSender

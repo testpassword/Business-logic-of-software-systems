@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service
 @Service class AdvertService {
 
     @Autowired private lateinit var repo: AdvertRepo
+    @Autowired private lateinit var postman: Postman
 
     infix fun add(advert: Advert) =
         with(AutoModerator(advert)) {
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Service
                 repo.save(advert)
                 true
             } else {
-                Postman(advert.user.email,
+                postman(advert.user.email,
                     "Automatic moderation failed",
                     """
                     Failed automatic moderation cause you use prohibited words:
@@ -30,9 +31,25 @@ import org.springframework.stereotype.Service
             }
         }
 
-    fun changeStatus(advertId: Long, status: Advert.STATUS) {
-
-    }
+    fun changeStatus(advertId: Long, status: Advert.STATUS, comment: String = "") =
+        with(get(advertId)) {
+            val template: (String) -> Unit = { postman(this.user.email, "Moderation result", it) }
+            this.status = status
+                when (status) {
+                    Advert.STATUS.DECLINED -> {
+                        template("The moderator decided to remove your ad for the following reason:\n$comment")
+                        repo.delete(this)
+                    }
+                    Advert.STATUS.ON_MODERATION -> {
+                        template("The moderator decided that you need to modify the ad due to:\n$comment")
+                        repo.save(this)
+                    }
+                    Advert.STATUS.APPROVED -> {
+                        template("Congratulations! Ad approved.")
+                        repo.save(this)
+                    }
+                }
+        }
 
     fun modify(advertId: Long, modified: Map<String, String>) =
         repo.save(get(advertId).apply {
@@ -50,7 +67,7 @@ import org.springframework.stereotype.Service
             modified["image"]?.let { image = it }
         })
 
-    fun getAll() = repo.findAll().toList()
+    fun getAll(status: Advert.STATUS = Advert.STATUS.APPROVED) = repo.findAll().filter { it.status == status }.toList()
 
     infix operator fun get(id: Long) = repo.getByAdvertId(id)
 
