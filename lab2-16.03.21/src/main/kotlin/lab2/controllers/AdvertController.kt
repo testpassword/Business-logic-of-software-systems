@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -91,12 +92,13 @@ class AdvertController {
     fun handleErrors(req: HttpServletRequest, e: Exception) =
         bad {
             msg = when (e) {
+                is MethodArgumentTypeMismatchException -> "This request required arguments"
                 is JwtException -> "Bad token or didn't presented"
                 is AuthenticationException -> "Password incorrect"
-                is EmptyResultDataAccessException -> "Entity didn't exist: ${e.stackTraceToString()}"
+                is EmptyResultDataAccessException -> "Entity didn't exist: $e"
                 else -> """
                     Unexpected exception, try later or contact support with this message
-                    $e
+                    ${e.stackTraceToString()}
                     $req
                     """.trimIndent()
             }

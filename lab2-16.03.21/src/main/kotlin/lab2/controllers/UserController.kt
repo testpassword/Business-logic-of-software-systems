@@ -15,6 +15,7 @@ import org.springframework.security.authentication.LockedException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -63,8 +64,7 @@ class UserController {
     @PostMapping(path = ["extendToken"], produces = ["application/json"])
     fun extendToken(raw: HttpServletRequest) =
         ok {
-            if (jwt isExpired (jwt resolve raw)!!)
-                token = jwt.generate((service loadUserByUsername (jwt decode raw)).email, listOf("USER"))
+            if (jwt isExpired raw) token = jwt.generate((service loadUserByUsername (jwt decode raw)).email, listOf("USER"))
             else msg = "You already have actual token"
         }
 
@@ -117,6 +117,7 @@ class UserController {
     fun handleErrors(req: HttpServletRequest, e: Exception) =
         bad {
             msg = when (e) {
+                is MethodArgumentTypeMismatchException -> "This request required arguments"
                 is LockedException -> "Your account locked. Maybe you forgot to change temp password or was banned"
                 is JwtException -> "Bad token or didn't presented"
                 is AuthenticationException -> "Password incorrect"

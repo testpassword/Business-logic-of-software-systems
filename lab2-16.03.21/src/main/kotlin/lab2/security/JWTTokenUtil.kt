@@ -31,11 +31,11 @@ import javax.servlet.http.HttpServletRequest
     infix fun validate(token: String) = Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body.expiration.before(Date())
 
     // TODO: устранить баг
-    infix fun isExpired(token: String) = getExpirationDate(token).before(Date())
+    infix fun isExpired(raw: HttpServletRequest) = getExpirationDate(resolve(raw)!!).before(Date())
 
     infix fun resolve(req: HttpServletRequest) =
         req.getHeader("Authorization")?.let {
-            if (it.startsWith("Bearer ")/* && isExpired(it).not()*/) it.substring(7) else null
+            if (it.startsWith("Bearer ")) it.substring(7) else null
         }
 
     infix fun getAuthentication(token: String) =

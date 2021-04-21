@@ -24,7 +24,7 @@ class JWTFilter(private val jwt: JWTTokenUtil): GenericFilterBean() {
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         val token = jwt resolve (request as HttpServletRequest)
-        if (token != null && (jwt validate token) && jwt.isExpired(token).not())
+        if (token != null && jwt validate token)
             (jwt getAuthentication token).let { SecurityContextHolder.getContext().authentication = it }
         chain.doFilter(request, response)
     }

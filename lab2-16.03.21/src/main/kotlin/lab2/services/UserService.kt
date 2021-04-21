@@ -1,7 +1,7 @@
 package lab2.services
 
-import lab2.UserRepo
 import lab2.models.User
+import lab2.repos.UserRepo
 import lab2.utils.Postman
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,13 +11,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-private val LOG = KotlinLogging.logger {}
-
 @Service class UserService: UserDetailsService {
 
     @Autowired private lateinit var repo: UserRepo
     @Autowired private lateinit var encoder: BCryptPasswordEncoder
     @Autowired private lateinit var postman: Postman
+    private val log = KotlinLogging.logger {}
 
     @Transactional fun add(email: String, password: String, name: String) =
         User(email, encoder.encode(password)).apply {
@@ -25,16 +24,16 @@ private val LOG = KotlinLogging.logger {}
             try {
                 postman(email, "Register", "yeah!")
             } catch (e: MailSendException) {
-                LOG.error { e.stackTraceToString() }
+                log.error { e.stackTraceToString() }
             }
         }
 
-    infix fun delete(email: String) {
+    @Transactional infix fun delete(email: String) {
         repo.delete(repo.getByEmail(email))
         try {
             postman(email, "Goodbye", ":(")
         } catch (e: MailSendException) {
-            LOG.error { e.stackTraceToString() }
+            log.error { e.stackTraceToString() }
         }
     }
 
@@ -53,12 +52,12 @@ private val LOG = KotlinLogging.logger {}
                 save(this)
                 true
             } catch (e: MailSendException) {
-                LOG.error { e.stackTraceToString() }
+                log.error { e.stackTraceToString() }
                 false
             }
     }
 
-    fun modify(email: String, modified: Map<String, String>) =
+    @Transactional fun modify(email: String, modified: Map<String, String>) =
         repo.save(loadUserByUsername(email).apply {
             modified["username"]?.let { name = it }
             modified["password"]?.let { password = it }
@@ -71,5 +70,5 @@ private val LOG = KotlinLogging.logger {}
 
     override infix fun loadUserByUsername(email: String) = repo getByEmail email
 
-    @Transactional infix fun save(user: User) = repo.save(user)
+    infix fun save(user: User) = repo.save(user)
 }

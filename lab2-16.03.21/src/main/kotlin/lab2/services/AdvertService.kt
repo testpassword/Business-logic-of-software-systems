@@ -1,18 +1,19 @@
 package lab2.services
 
-import lab2.AdvertRepo
 import lab2.models.Advert
+import lab2.repos.AdvertRepo
 import lab2.utils.AutoModerator
 import lab2.utils.Postman
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service class AdvertService {
 
     @Autowired private lateinit var repo: AdvertRepo
     @Autowired private lateinit var postman: Postman
 
-    infix fun add(advert: Advert) =
+    @Transactional infix fun add(advert: Advert) =
         with(AutoModerator(advert)) {
             val (status, prohibited) = this
             if (status) {
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Service
             }
         }
 
-    fun changeStatus(advertId: Long, status: Advert.STATUS, comment: String = "") =
+    @Transactional fun changeStatus(advertId: Long, status: Advert.STATUS, comment: String = "") =
         with(get(advertId)) {
             val template: (String) -> Unit = { postman(this.user.email, "Moderation result", it) }
             this.status = status
@@ -51,7 +52,7 @@ import org.springframework.stereotype.Service
                 }
         }
 
-    fun modify(advertId: Long, modified: Map<String, String>) =
+    @Transactional fun modify(advertId: Long, modified: Map<String, String>) =
         repo.save(get(advertId).apply {
             modified["cost"]?.let { cost = it.toInt() }
             modified["typeOfAdvert"]?.let { typeOfAdvert = Advert.TYPE_OF_ADVERT.valueOf(it) }

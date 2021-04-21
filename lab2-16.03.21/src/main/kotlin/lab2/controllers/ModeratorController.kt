@@ -31,7 +31,7 @@ class ModeratorController {
     @GetMapping(path = ["status"], produces = ["application/json"])
     fun getAdvertsByStatus(@RequestParam status: String, raw: HttpServletRequest) =
         ok(raw) {
-            // TODO: роли не строки
+            if ("MODERATOR" !in jwt getRoles (jwt resolve raw)!!) throw roleException
             advertService.getAll(Advert.STATUS.valueOf(status))
         }
 

@@ -1,4 +1,4 @@
-package lab2
+package lab2.config
 
 import lab2.security.JWTFilter
 import lab2.security.JWTTokenUtil
@@ -30,10 +30,7 @@ import org.springframework.stereotype.Component
             .csrf().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
             .and().authorizeRequests()
-            .antMatchers("/user/**").permitAll()
-            .antMatchers("/advert/**").permitAll()
-            .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-            .anyRequest().authenticated()
+            .antMatchers("**").permitAll()
             .and().apply(object: SecurityConfigurerAdapter<DefaultSecurityFilterChain?, HttpSecurity>() {
                 override fun configure(builder: HttpSecurity) {
                     builder.addFilterBefore(JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter::class.java)
