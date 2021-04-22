@@ -2,27 +2,30 @@ package lab2.dtos
 
 import kotlinx.serialization.Serializable
 import lab2.models.Advert
+import lab2.models.User
 
-@Serializable data class UserReq(val email: String = "",
-                                 val password: String = "",
-                                 val name: String = "",
-                                 val payload: String = "")
+@Serializable open class Req
 
-//TODO: сериализация
-@Serializable data class AdvertReq(val userId: Long = 0,
-                                   val cost: Int,
-                                   val typeOfAdvert: Advert.TYPE_OF_ADVERT = Advert.TYPE_OF_ADVERT.SALE,
-                                   val typeOfEstate: Advert.TYPE_OF_ESTATE = Advert.TYPE_OF_ESTATE.FLAT,
-                                   val location: String = "",
-                                   val quantityOfRooms: Int = 0,
-                                   val area: Int = 0,
-                                   val floor: Int = 0,
-                                   val description: String = "",
-                                   val name: String = "",
-                                   val mobileNumber: String = "",
-                                   val isRealtor: Boolean = false,
-                                   val image: String = "",
-                                   val status: Advert.STATUS = Advert.STATUS.ON_MODERATION) {
+data class UserReq(val email: String = "",
+                   val password: String = "",
+                   val name: String = "",
+                   val payload: String = ""): Req()
+
+
+data class AdvertReq(val userId: Long = 0,
+                     val cost: Int,
+                     val typeOfAdvert: Advert.TYPE_OF_ADVERT = Advert.TYPE_OF_ADVERT.SALE,
+                     val typeOfEstate: Advert.TYPE_OF_ESTATE = Advert.TYPE_OF_ESTATE.FLAT,
+                     val location: String = "",
+                     val quantityOfRooms: Int = 0,
+                     val area: Int = 0,
+                     val floor: Int = 0,
+                     val description: String = "",
+                     val name: String = "",
+                     val mobileNumber: String = "",
+                     val isRealtor: Boolean = false,
+                     val image: String = "",
+                     val status: Advert.STATUS = Advert.STATUS.ON_MODERATION): Req() {
 
     fun toAdvert() = Advert().apply {
         this.cost = this@AdvertReq.cost
@@ -40,5 +43,9 @@ import lab2.models.Advert
     }
 }
 
-@Serializable data class ModerateReq(val comment: String = "",
-                                     val status: Advert.STATUS = Advert.STATUS.ON_MODERATION)
+data class ModerateReq(val comment: String = "",
+                       val status: Advert.STATUS = Advert.STATUS.ON_MODERATION): Req()
+
+
+data class AdminReq(val userRole: User.ROLE? = null,
+                    val userStatus: User.STATUS? = null): Req()

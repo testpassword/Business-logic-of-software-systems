@@ -11,7 +11,5 @@ object AutoModerator {
         listOf(a.location, a.description, a.name, a.mobileNumber, a.image)
             .flatMap { it.split(" ") }
             .toSet()
-            .intersect(BAD_WORDS).let {
-                it.isEmpty() to it
-            }
+            .intersect(BAD_WORDS)
 }

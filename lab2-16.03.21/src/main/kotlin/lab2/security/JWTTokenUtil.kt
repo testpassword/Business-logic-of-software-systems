@@ -20,9 +20,8 @@ import javax.servlet.http.HttpServletRequest
     @Value("\${jwt.validity}") private val VALIDITY: Long = 0
     @Autowired private lateinit var userDetails: UserService
 
-    fun generate(username: String, roles: List<String>) =
+    infix fun generate(username: String) =
         Jwts.claims().setSubject(username).let {
-            it["roles"] = roles
             val now = Date()
             Jwts.builder().setClaims(it).setIssuedAt(now).setExpiration(Date(now.time + VALIDITY))
                 .signWith(SignatureAlgorithm.HS512, KEY).compact()
@@ -30,7 +29,6 @@ import javax.servlet.http.HttpServletRequest
 
     infix fun validate(token: String) = Jwts.parser().setSigningKey(KEY).parseClaimsJws(token).body.expiration.before(Date())
 
-    // TODO: устранить баг
     infix fun isExpired(raw: HttpServletRequest) = getExpirationDate(resolve(raw)!!).before(Date())
 
     infix fun resolve(req: HttpServletRequest) =
@@ -57,5 +55,4 @@ import javax.servlet.http.HttpServletRequest
             throw JwtException("bad token")
         }
 
-    infix fun getRoles(token: String) = getClaim(token) { it["roles"] } as List<String>
 }

@@ -15,16 +15,18 @@ import org.springframework.transaction.annotation.Transactional
 
     @Transactional infix fun add(advert: Advert) =
         with(AutoModerator(advert)) {
-            val (status, prohibited) = this
-            if (status) {
+            println(this)
+            println("AUF ${this.isEmpty()}")
+            if (isEmpty()) {
                 repo.save(advert)
+                println("AUF2")
                 true
             } else {
                 postman(advert.user.email,
                     "Automatic moderation failed",
                     """
                     Failed automatic moderation cause you use prohibited words:
-                    $prohibited
+                    $this
                     Replace them with something else
                     """.trimIndent()
                 )
@@ -66,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional
             modified["mobileNumber"]?.let { mobileNumber = it }
             modified["isRealtor"]?.let { isRealtor = it.toBoolean() }
             modified["image"]?.let { image = it }
+            status = Advert.STATUS.ON_MODERATION
         })
 
     fun getAll(status: Advert.STATUS = Advert.STATUS.APPROVED) = repo.findAll().filter { it.status == status }.toList()

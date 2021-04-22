@@ -6,6 +6,7 @@ import lab2.dtos.AdvertRes
 import lab2.security.JWTTokenUtil
 import lab2.services.AdvertService
 import lab2.services.UserService
+import mu.KotlinLogging
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.EmptyResultDataAccessException
@@ -24,6 +25,7 @@ class AdvertController {
     @Autowired private lateinit var jwt: JWTTokenUtil
     @Autowired private lateinit var userService: UserService
     @Autowired private lateinit var advertService: AdvertService
+    private val log = KotlinLogging.logger {}
 
     private fun ok(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.OK)
 
@@ -65,9 +67,9 @@ class AdvertController {
             val advert = req.toAdvert()
             if (req.mobileNumber.isBlank() || req.name.isBlank())
                 throw Exception("Required mobileNumber and name for advert")
-            if (advert.user.userId == (userService loadUserByUsername (jwt decode raw)).userId)
-                throw Exception("You isn't a owner of this advert")
-            msg = if (advertService add advert) "Your advert was published" else "We found a problems while moderating. Please read our rules"
+            advert.user = userService loadUserByUsername (jwt decode raw)
+            msg = if (advertService add advert) "Your advert was complete automoderation and sent to manual"
+            else "We found a problems while moderating. Please read our rules"
         }
 
     @PutMapping(path = ["{advertId}"], consumes = ["application/json"], produces = ["application/json"])
@@ -88,9 +90,9 @@ class AdvertController {
             msg = "Successfully deleted"
         }
 
-    @ExceptionHandler(Exception::class)
-    fun handleErrors(req: HttpServletRequest, e: Exception) =
+    @ExceptionHandler(Exception::class) fun handleErrors(req: HttpServletRequest, e: Exception) =
         bad {
+            log.error { e.stackTraceToString() }
             msg = when (e) {
                 is MethodArgumentTypeMismatchException -> "This request required arguments"
                 is JwtException -> "Bad token or didn't presented"
@@ -98,7 +100,7 @@ class AdvertController {
                 is EmptyResultDataAccessException -> "Entity didn't exist: $e"
                 else -> """
                     Unexpected exception, try later or contact support with this message
-                    ${e.stackTraceToString()}
+                    ${e.message}
                     $req
                     """.trimIndent()
             }

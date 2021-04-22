@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import javax.persistence.*
@@ -20,6 +20,7 @@ class User: UserDetails {
     private var password: String = ""
     var name: String = ""
     @Enumerated(EnumType.STRING) var status: STATUS = STATUS.ACTIVE
+    @Enumerated(EnumType.STRING) var role: ROLE = ROLE.USER
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER) val adverts: List<Advert> = emptyList()
 
     constructor()
@@ -45,8 +46,13 @@ class User: UserDetails {
 
     override fun isEnabled(): Boolean = status != STATUS.DELETED
 
+    enum class ROLE { ADMIN, USER, MODERATOR }
+
     enum class STATUS { LOCKED, BANNED, ACTIVE, DELETED }
 }
+
+
+class RoleException: AuthenticationException("")
 
 
 class UserSerializer(t: Class<User>? = null): StdSerializer<User>(t) {

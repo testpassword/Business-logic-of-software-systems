@@ -34,7 +34,7 @@ class UserController {
 
     private fun auth(email: String, password: String): String {
         authManager.authenticate(UsernamePasswordAuthenticationToken(email, password))
-        return jwt.generate(email, listOf("USER"))
+        return jwt generate email
     }
 
     @GetMapping(path = ["all"], produces = ["application/json"])
@@ -64,7 +64,7 @@ class UserController {
     @PostMapping(path = ["extendToken"], produces = ["application/json"])
     fun extendToken(raw: HttpServletRequest) =
         ok {
-            if (jwt isExpired raw) token = jwt.generate((service loadUserByUsername (jwt decode raw)).email, listOf("USER"))
+            if (jwt isExpired raw) token = jwt generate ((service loadUserByUsername (jwt decode raw)).email)
             else msg = "You already have actual token"
         }
 
@@ -113,8 +113,7 @@ class UserController {
                 "Temp password sent to your email" else "Error on server while reseting password, try later"
         }
 
-    @ExceptionHandler(Exception::class)
-    fun handleErrors(req: HttpServletRequest, e: Exception) =
+    @ExceptionHandler(Exception::class) fun handleErrors(req: HttpServletRequest, e: Exception) =
         bad {
             msg = when (e) {
                 is MethodArgumentTypeMismatchException -> "This request required arguments"

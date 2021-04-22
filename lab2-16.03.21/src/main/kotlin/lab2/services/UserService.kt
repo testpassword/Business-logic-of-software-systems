@@ -5,18 +5,37 @@ import lab2.repos.UserRepo
 import lab2.utils.Postman
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.mail.MailSendException
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import javax.annotation.PostConstruct
 
 @Service class UserService: UserDetailsService {
 
+    @Value("\${admin.email}") private lateinit var adminEmail: String
+    @Value("\${admin.password}") private lateinit var adminPass: String
+    @Value("\${admin.username}") private lateinit var adminName: String
     @Autowired private lateinit var repo: UserRepo
     @Autowired private lateinit var encoder: BCryptPasswordEncoder
     @Autowired private lateinit var postman: Postman
     private val log = KotlinLogging.logger {}
+
+    @PostConstruct @Transactional
+    fun `add admin user`() =
+        try {
+            repo getByEmail adminEmail
+            log.info { "admin user already exists in db" }
+        } catch (e: EmptyResultDataAccessException) {
+            repo.save(User(adminEmail, encoder.encode(adminPass)).apply {
+                name = adminName
+                role = User.ROLE.ADMIN
+            })
+            log.info { "admin user created" }
+        }
 
     @Transactional fun add(email: String, password: String, name: String) =
         User(email, encoder.encode(password)).apply {
@@ -24,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional
             try {
                 postman(email, "Register", "yeah!")
             } catch (e: MailSendException) {
-                log.error { e.stackTraceToString() }
+                log.error { e.message }
             }
         }
 
@@ -33,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional
         try {
             postman(email, "Goodbye", ":(")
         } catch (e: MailSendException) {
-            log.error { e.stackTraceToString() }
+            log.error { e.message }
         }
     }
 
@@ -48,11 +67,10 @@ import org.springframework.transaction.annotation.Transactional
                     You should set new one on first login.
                     """.trimIndent())
                 password = encoder.encode(tempPassword)
-                status = User.STATUS.LOCKED
                 save(this)
                 true
             } catch (e: MailSendException) {
-                log.error { e.stackTraceToString() }
+                log.error { e.message }
                 false
             }
     }
