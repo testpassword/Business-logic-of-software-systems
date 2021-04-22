@@ -1,11 +1,20 @@
 package lab2.utils
 
 import lab2.models.Advert
+import mu.KotlinLogging
 import org.springframework.core.io.ClassPathResource
 
 object AutoModerator {
 
-    val BAD_WORDS = ClassPathResource("bad_words.txt").file.readLines().toSet()
+    private val log = KotlinLogging.logger {}
+
+    val BAD_WORDS =
+        try {
+            ClassPathResource("bad_words.txt").file.readLines().toSet()
+        } catch (e: Exception) {
+            log.error { "File with bad words didn't exist, automoderation disabled" }
+            emptySet()
+        }
 
     operator fun invoke(a: Advert) =
         listOf(a.location, a.description, a.name, a.mobileNumber, a.image)

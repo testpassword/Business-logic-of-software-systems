@@ -67,7 +67,8 @@ class AdvertController {
             val advert = req.toAdvert()
             if (req.mobileNumber.isBlank() || req.name.isBlank())
                 throw Exception("Required mobileNumber and name for advert")
-            advert.user = userService loadUserByUsername (jwt decode raw)
+            //advert.user = userService loadUserByUsername (jwt decode raw)
+            advert.userId = (userService loadUserByUsername (jwt decode raw)).userId
             msg = if (advertService add advert) "Your advert was complete automoderation and sent to manual"
             else "We found a problems while moderating. Please read our rules"
         }
@@ -85,7 +86,7 @@ class AdvertController {
         ok {
             ids.split(";")
                 .map { advertService[it.toLong()] }
-                .filter { it.user.userId == userService.loadUserByUsername(jwt decode raw).userId }
+                .filter { it/*.user*/.userId == userService.loadUserByUsername(jwt decode raw).userId }
                 .forEach(advertService::delete)
             msg = "Successfully deleted"
         }

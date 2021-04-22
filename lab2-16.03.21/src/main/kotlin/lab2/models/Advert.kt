@@ -8,7 +8,8 @@ class Advert {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "advert_seq_gen")
     @SequenceGenerator(name = "users_seq_gen", sequenceName = "advert_id_seq")
     @Id var advertId: Long = 0
-    @ManyToOne(optional = false, cascade = [CascadeType.ALL]) @JoinColumn(name = "user_id") lateinit var user: User
+    var userId: Long = 0
+    //@ManyToOne(optional = false, cascade = [CascadeType.ALL]) @JoinColumn(name = "user_id") lateinit var user: User
     var cost: Int = 0
     @Enumerated(EnumType.STRING) lateinit var typeOfAdvert: TYPE_OF_ADVERT
     @Enumerated(EnumType.STRING) lateinit var typeOfEstate: TYPE_OF_ESTATE

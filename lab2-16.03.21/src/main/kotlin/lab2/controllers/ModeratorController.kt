@@ -3,6 +3,7 @@ package lab2.controllers
 import io.jsonwebtoken.JwtException
 import org.springframework.security.core.AuthenticationException
 import lab2.dtos.ModerateReq
+import lab2.dtos.ModeratorRes
 import lab2.dtos.Res
 import lab2.models.Advert
 import lab2.models.RoleException
@@ -24,9 +25,9 @@ class ModeratorController {
     @Autowired private lateinit var userService: UserService
     @Autowired private lateinit var advertService: AdvertService
 
-    private fun ok(raw: HttpServletRequest, block: Res.() -> Unit): ResponseEntity<Res> {
+    private fun ok(raw: HttpServletRequest, block: ModeratorRes.() -> Unit): ResponseEntity<ModeratorRes> {
         if ((userService loadUserByUsername (jwt decode raw)).role != User.ROLE.MODERATOR) throw RoleException()
-        return ResponseEntity(Res().apply(block), HttpStatus.OK)
+        return ResponseEntity(ModeratorRes().apply(block), HttpStatus.OK)
     }
 
     private fun bad(block: Res.() -> Unit) = ResponseEntity(Res().apply(block), HttpStatus.BAD_REQUEST)
@@ -34,7 +35,7 @@ class ModeratorController {
     @GetMapping(path = ["get_by_status"], produces = ["application/json"])
     fun getAdvertsByStatus(@RequestParam status: String, raw: HttpServletRequest) =
         ok(raw) {
-            advertService.getAll(Advert.STATUS.valueOf(status))
+            adverts = advertService.getAll(Advert.STATUS.valueOf(status))
         }
 
     @PostMapping(path = ["change/{advertId}"], produces = ["application/json"])

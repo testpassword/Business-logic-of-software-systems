@@ -1,10 +1,10 @@
 package lab2.dtos
 
-import kotlinx.serialization.Serializable
 import lab2.models.Advert
 import lab2.models.User
+import java.io.Serializable
 
-@Serializable open class Req
+open class Req: Serializable
 
 data class UserReq(val email: String = "",
                    val password: String = "",

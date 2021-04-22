@@ -31,7 +31,7 @@ dependencies {
     // json
     implementation("io.jsonwebtoken:jjwt:0.9.1")
     implementation("org.json:json:20210307")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+    implementation("org.springdoc:springdoc-openapi-ui:1.5.4")
     // kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

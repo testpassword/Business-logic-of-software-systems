@@ -1,7 +1,8 @@
 package lab2.services
 
 import lab2.models.User
-import lab2.repos.UserRepo
+//import lab2.repos.UserRepo
+import lab2.repos.UserXMLRepo
 import lab2.utils.Postman
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,18 +15,19 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import javax.annotation.PostConstruct
 
-@Service class UserService: UserDetailsService {
+@Service class  UserService: UserDetailsService {
 
     @Value("\${admin.email}") private lateinit var adminEmail: String
     @Value("\${admin.password}") private lateinit var adminPass: String
     @Value("\${admin.username}") private lateinit var adminName: String
-    @Autowired private lateinit var repo: UserRepo
+    //@Autowired private lateinit var repo: UserRepo
     @Autowired private lateinit var encoder: BCryptPasswordEncoder
     @Autowired private lateinit var postman: Postman
     private val log = KotlinLogging.logger {}
+    private val repo = UserXMLRepo
 
     @PostConstruct @Transactional
-    fun `add admin user`() =
+    fun initAdmin() =
         try {
             repo getByEmail adminEmail
             log.info { "admin user already exists in db" }
@@ -41,7 +43,7 @@ import javax.annotation.PostConstruct
         User(email, encoder.encode(password)).apply {
             repo.save(this)
             try {
-                postman(email, "Register", "yeah!")
+                //postman(email, "Register", "yeah!")
             } catch (e: MailSendException) {
                 log.error { e.message }
             }

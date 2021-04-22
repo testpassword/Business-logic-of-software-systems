@@ -12,11 +12,11 @@ api_root = 'http://localhost:17502/'
 api = {
     'root': api_root,
     'admin': f'{api_root}admin/',
-    'moderator': f'{api_root}moderate/',
+    'moderate': f'{api_root}moderate/',
     'user': f'{api_root}user/',
     'advert': f'{api_root}advert/'
 }
-user = User('kulbako2000@mail.ru', 'root', 'pupa')
+user = User('pspfanGTA@gmail.com', 'root', 'pupa')
 moderator = User('moderator@lol.kek', 'root', 'lupa')
 admin = User('god@lol.kek', 'toor', 'god')
 
@@ -54,9 +54,9 @@ res = requests.post(
 print(res)
 admin.token = res['token']
 print(requests.patch(
-    url = f'{api["admin"]}change_role/2',
+    url = f'{api["admin"]}change_role/3',
     json = {
-        'userId': 2,
+        'userId': 3,
         'userRole': 'MODERATOR'
     },
     headers = {
@@ -79,9 +79,20 @@ print(requests.post(
         'Authorization': f'Bearer {user.token}'
     }).json())
 
-print('5. Модератор одобряет объявление')
+print('5. Модератор получает список неодобренных объявлений')
+print(requests.get(
+        url = f'{api["moderate"]}get_by_status',
+        params = {
+            'status': 'ON_MODERATION'
+        },
+        headers = {
+            'Authorization': f'Bearer {moderator.token}'
+        }
+    ).json())
+
+print('6. Модератор одобряет объявление')
 print(requests.post(
-    url = f'{api["moderator"]}change/1',
+    url = f'{api["moderate"]}change/1',
     json = {
         'status': 'APPROVED'
     },
@@ -89,5 +100,5 @@ print(requests.post(
         'Authorization': f'Bearer {moderator.token}'
     }).json())
 
-print('6. Пользователь проверяет, что статус изменился')
+print('7. Пользователь проверяет, что статус изменился')
 print(requests.get(url = f'{api["advert"]}1').json())

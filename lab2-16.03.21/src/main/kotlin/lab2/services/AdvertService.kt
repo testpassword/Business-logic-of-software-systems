@@ -10,19 +10,18 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service class AdvertService {
 
+    @Autowired private lateinit var userService: UserService
     @Autowired private lateinit var repo: AdvertRepo
     @Autowired private lateinit var postman: Postman
 
     @Transactional infix fun add(advert: Advert) =
         with(AutoModerator(advert)) {
-            println(this)
-            println("AUF ${this.isEmpty()}")
             if (isEmpty()) {
                 repo.save(advert)
-                println("AUF2")
                 true
             } else {
-                postman(advert.user.email,
+                postman(userService[advert.userId].email,
+                //postman(advert.user.email,
                     "Automatic moderation failed",
                     """
                     Failed automatic moderation cause you use prohibited words:
@@ -36,7 +35,8 @@ import org.springframework.transaction.annotation.Transactional
 
     @Transactional fun changeStatus(advertId: Long, status: Advert.STATUS, comment: String = "") =
         with(get(advertId)) {
-            val template: (String) -> Unit = { postman(this.user.email, "Moderation result", it) }
+            val template: (String) -> Unit = { postman(userService[this.userId].email, "Moderation result", it) }
+            //val template: (String) -> Unit = { postman(this.user.email, "Moderation result", it) }
             this.status = status
                 when (status) {
                     Advert.STATUS.DECLINED -> {

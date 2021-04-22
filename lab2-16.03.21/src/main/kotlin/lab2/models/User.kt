@@ -10,18 +10,18 @@ import org.springframework.security.core.userdetails.UserDetails
 import javax.persistence.*
 import javax.validation.constraints.Email
 
-@Entity @Table(name="users") @JsonSerialize(using = UserSerializer::class)
+//@Entity @Table(name="users") @JsonSerialize(using = UserSerializer::class)
 class User: UserDetails {
 
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
-    @SequenceGenerator(name = "users_seq_gen", sequenceName = "users_id_seq")
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
+//    @SequenceGenerator(name = "users_seq_gen", sequenceName = "users_id_seq")
     @Id var userId: Long = 0
     var email: @Email String = ""
     private var password: String = ""
     var name: String = ""
     @Enumerated(EnumType.STRING) var status: STATUS = STATUS.ACTIVE
     @Enumerated(EnumType.STRING) var role: ROLE = ROLE.USER
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER) val adverts: List<Advert> = emptyList()
+    /*@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)*/ val adverts: List<Advert> = emptyList()
 
     constructor()
 
