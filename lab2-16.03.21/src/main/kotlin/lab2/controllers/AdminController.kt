@@ -40,7 +40,7 @@ class AdminController {
         ok(raw) {
             msg = req.userStatus?.let {
                 service save service[userId].apply { status = req.userStatus }
-                "Status of user ${userId} changed to ${req.userStatus}"
+                "Status of user $userId changed to ${req.userStatus}"
             } ?: throw IllegalArgumentException()
         }
 
@@ -49,7 +49,7 @@ class AdminController {
         ok(raw) {
             msg = req.userRole?.let {
                 service save service[userId].apply { role = req.userRole }
-                "Status of user $userId changed to ${req.userRole}"
+                "Role of user $userId changed to ${req.userRole}"
             } ?: throw IllegalArgumentException()
         }
 
