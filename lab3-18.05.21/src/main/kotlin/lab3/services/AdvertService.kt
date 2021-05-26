@@ -7,10 +7,10 @@ import lab3.utils.Postman
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service class AdvertService {
 
-    @Autowired private lateinit var userService: UserService
     @Autowired private lateinit var repo: AdvertRepo
     @Autowired private lateinit var postman: Postman
 
@@ -20,8 +20,7 @@ import org.springframework.transaction.annotation.Transactional
                 repo.save(advert)
                 true
             } else {
-                postman(userService[advert.userId].email,
-                //postman(advert.user.email,
+                postman(advert.user.email,
                     "Automatic moderation failed",
                     """
                     Failed automatic moderation cause you use prohibited words:
@@ -35,21 +34,21 @@ import org.springframework.transaction.annotation.Transactional
 
     @Transactional fun changeStatus(advertId: Long, status: Advert.STATUS, comment: String = "") =
         with(get(advertId)) {
-            val template: (String) -> Unit = { postman(userService[this.userId].email, "Moderation result", it) }
-            //val template: (String) -> Unit = { postman(this.user.email, "Moderation result", it) }
+            val templateMail: (String) -> Unit = { postman(this.user.email, "Moderation result", it) }
             this.status = status
                 when (status) {
                     Advert.STATUS.DECLINED -> {
-                        template("The moderator decided to remove your ad for the following reason:\n$comment")
                         repo.delete(this)
+                        templateMail("The moderator decided to remove your ad for the following reason:\n$comment")
                     }
                     Advert.STATUS.ON_MODERATION -> {
-                        template("The moderator decided that you need to modify the ad due to:\n$comment")
                         repo.save(this)
+                        templateMail("The moderator decided that you need to modify the ad due to:\n$comment")
                     }
                     Advert.STATUS.APPROVED -> {
-                        template("Congratulations! Ad approved.")
+                        creationDate = Date()
                         repo.save(this)
+                        templateMail("Congratulations! Ad approved.")
                     }
                 }
         }

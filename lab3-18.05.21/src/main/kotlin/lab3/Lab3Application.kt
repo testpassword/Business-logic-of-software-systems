@@ -4,9 +4,11 @@ import org.springframework.boot.Banner
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 
-@SpringBootApplication class Lab2Application
+const val MIDNIGHT = "0 0 0 * * *"
+
+@SpringBootApplication class Lab3Application
 fun main(args: Array<String>) {
-    with(SpringApplication(Lab2Application::class.java)) {
+    with(SpringApplication(Lab3Application::class.java)) {
         setBannerMode(Banner.Mode.OFF)
         run(*args)
     }

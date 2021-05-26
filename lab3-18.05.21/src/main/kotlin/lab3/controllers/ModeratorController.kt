@@ -46,19 +46,4 @@ class ModeratorController {
             advertService.changeStatus(advertId, req.status, req.comment)
             msg = "Status changed correct"
         }
-
-    @ExceptionHandler(Exception::class) fun handleErrors(req: HttpServletRequest, e: Exception) =
-        bad {
-            msg = when (e) {
-                is RoleException -> "You should be ${User.ROLE.MODERATOR} for this operation"
-                is JwtException -> "Bad token or didn't presented"
-                is DataFormatException -> "You must specify why the ad wasn't approved"
-                is AuthenticationException -> "This url allowed only for moderators"
-                else -> """
-                    Unexpected exception, try later or contact support with this message
-                    $e
-                    $req
-                    """.trimIndent()
-            }
-        }
 }

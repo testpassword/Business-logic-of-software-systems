@@ -1,21 +1,14 @@
 package lab3.controllers
 
-import io.jsonwebtoken.JwtException
 import lab3.dtos.AdvertReq
 import lab3.dtos.AdvertRes
 import lab3.security.JWTTokenUtil
 import lab3.services.AdvertService
 import lab3.services.UserService
-import mu.KotlinLogging
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.dao.EmptyResultDataAccessException
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.security.core.AuthenticationException
+import org.springframework.http.*
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -25,11 +18,8 @@ class AdvertController {
     @Autowired private lateinit var jwt: JWTTokenUtil
     @Autowired private lateinit var userService: UserService
     @Autowired private lateinit var advertService: AdvertService
-    private val log = KotlinLogging.logger {}
 
     private fun ok(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.OK)
-
-    private fun bad(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.BAD_REQUEST)
 
     @GetMapping(path = ["all"], produces = ["application/json"])
     fun getAll() =
@@ -65,10 +55,8 @@ class AdvertController {
     fun add(@Valid @RequestBody req: AdvertReq, raw: HttpServletRequest) =
         ok {
             val advert = req.toAdvert()
-            if (req.mobileNumber.isBlank() || req.name.isBlank())
-                throw Exception("Required mobileNumber and name for advert")
-            //advert.user = userService loadUserByUsername (jwt decode raw)
-            advert.userId = (userService loadUserByUsername (jwt decode raw)).userId
+            if (req.mobileNumber.isBlank() || req.name.isBlank()) throw Exception("Required mobileNumber and name for advert")
+            advert.user = userService loadUserByUsername (jwt decode raw)
             msg = if (advertService add advert) "Your advert was complete automoderation and sent to manual"
             else "We found a problems while moderating. Please read our rules"
         }
@@ -86,24 +74,8 @@ class AdvertController {
         ok {
             ids.split(";")
                 .map { advertService[it.toLong()] }
-                .filter { it/*.user*/.userId == userService.loadUserByUsername(jwt decode raw).userId }
+                .filter { it.user.userId == (userService loadUserByUsername(jwt decode raw)).userId }
                 .forEach(advertService::delete)
             msg = "Successfully deleted"
-        }
-
-    @ExceptionHandler(Exception::class) fun handleErrors(req: HttpServletRequest, e: Exception) =
-        bad {
-            log.error { e.stackTraceToString() }
-            msg = when (e) {
-                is MethodArgumentTypeMismatchException -> "This request required arguments"
-                is JwtException -> "Bad token or didn't presented"
-                is AuthenticationException -> "Password incorrect"
-                is EmptyResultDataAccessException -> "Entity didn't exist: $e"
-                else -> """
-                    Unexpected exception, try later or contact support with this message
-                    ${e.message}
-                    $req
-                    """.trimIndent()
-            }
         }
 }

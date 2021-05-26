@@ -22,6 +22,7 @@ class User: UserDetails {
     @Enumerated(EnumType.STRING) var status: STATUS = STATUS.ACTIVE
     @Enumerated(EnumType.STRING) var role: ROLE = ROLE.USER
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER) val adverts: List<Advert> = emptyList()
+    var isDescriber: Boolean = false
 
     constructor()
 

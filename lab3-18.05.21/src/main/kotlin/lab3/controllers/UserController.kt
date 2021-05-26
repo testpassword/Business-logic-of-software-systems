@@ -1,6 +1,5 @@
 package lab3.controllers
 
-import io.jsonwebtoken.JwtException
 import lab3.dtos.UserReq
 import lab3.dtos.UserRes
 import lab3.security.JWTTokenUtil
@@ -11,11 +10,8 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.LockedException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -27,8 +23,6 @@ class UserController {
     @Autowired private lateinit var service: UserService
 
     private fun ok(block: UserRes.() -> Unit) = ResponseEntity(UserRes().apply(block), HttpStatus.OK)
-
-    private fun bad(block: UserRes.() -> Unit) = ResponseEntity(UserRes().apply(block), HttpStatus.BAD_REQUEST)
 
     private fun other(status: HttpStatus, block: UserRes.() -> Unit) = ResponseEntity(UserRes().apply(block), status)
 
@@ -111,21 +105,5 @@ class UserController {
         ok {
             msg = if (service resetPassword req.email)
                 "Temp password sent to your email" else "Error on server while reseting password, try later"
-        }
-
-    @ExceptionHandler(Exception::class) fun handleErrors(req: HttpServletRequest, e: Exception) =
-        bad {
-            msg = when (e) {
-                is MethodArgumentTypeMismatchException -> "This request required arguments"
-                is LockedException -> "Your account locked. Maybe you forgot to change temp password or was banned"
-                is JwtException -> "Bad token or didn't presented"
-                is AuthenticationException -> "Password incorrect"
-                is EmptyResultDataAccessException -> "User didn't exist. Check email and password"
-                else -> """
-                    Unexpected exception, try later or contact support with this message
-                    $e
-                    $req
-                    """.trimIndent()
-            }
         }
 }

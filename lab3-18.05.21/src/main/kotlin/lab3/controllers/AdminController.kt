@@ -1,6 +1,6 @@
 package lab3.controllers
 
-import io.jsonwebtoken.JwtException
+import com.beust.klaxon.Klaxon
 import lab3.dtos.AdminReq
 import lab3.dtos.Res
 import lab3.models.RoleException
@@ -8,12 +8,13 @@ import lab3.models.User
 import lab3.security.JWTTokenUtil
 import lab3.services.UserService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
+import lab3.utils.Statistic
+import java.io.IOException
 
 @RestController @RequestMapping(path = ["/admin"])
 class AdminController {
@@ -23,10 +24,8 @@ class AdminController {
 
     private fun ok(raw: HttpServletRequest, block: Res.() -> Unit): ResponseEntity<Res> {
         if ((service loadUserByUsername (jwt decode raw)).role != User.ROLE.ADMIN) throw RoleException()
-        return ResponseEntity(Res().apply(block), HttpStatus.OK)
+        else return ResponseEntity(Res().apply(block), HttpStatus.OK)
     }
-
-    private fun bad(block: Res.() -> Unit) = ResponseEntity(Res().apply(block), HttpStatus.BAD_REQUEST)
 
     @DeleteMapping(path = ["delete/{userId}"], consumes = ["application/json"], produces = ["application/json"])
     fun delete(@PathVariable userId: Long, @Valid @RequestBody req: AdminReq, raw: HttpServletRequest) =
@@ -53,18 +52,16 @@ class AdminController {
             } ?: throw IllegalArgumentException()
         }
 
-    @ExceptionHandler(Exception::class) fun handleErrors(req: HttpServletRequest, e: Exception) =
-        bad {
-            msg = when (e) {
-                is RoleException -> "You should be ${User.ROLE.ADMIN} for this operation"
-                is IllegalArgumentException -> "You should add param for change"
-                is JwtException -> "Bad token or didn't presented"
-                is EmptyResultDataAccessException -> "Entity didn't exist: $e"
-                else -> """
-                    Unexpected exception, try later or contact support with this message
-                    ${e.stackTraceToString()}
-                    $req
-                    """.trimIndent()
-            }
+    @GetMapping(path = ["stat"], produces = ["application/json"])
+    fun getStatistic(@RequestParam isCached: Boolean = true, raw: HttpServletRequest) =
+        ok(raw) {
+            msg = if (!isCached or Statistic.cached.isEmpty()) {
+                try {
+                    Statistic.updateReq()
+                    "Computing statistic started, you will get results on your email as soon as possible"
+                } catch (e: IOException) {
+                    "Error sending request to statistic update. Try it later or contact support team"
+                }
+            } else Klaxon().toJsonString(Statistic.cached)
         }
 }
