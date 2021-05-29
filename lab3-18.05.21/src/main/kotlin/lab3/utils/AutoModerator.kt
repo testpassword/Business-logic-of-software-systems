@@ -6,13 +6,11 @@ import org.springframework.core.io.ClassPathResource
 
 object AutoModerator {
 
-    private val log = KotlinLogging.logger {}
-
     val BAD_WORDS =
         try {
             ClassPathResource("bad_words.txt").file.readLines().toSet()
         } catch (e: Exception) {
-            log.error { "File with bad words didn't exist, automoderation disabled" }
+            KotlinLogging.logger {}.error { "File with bad words didn't exist, automoderation disabled" }
             emptySet()
         }
 

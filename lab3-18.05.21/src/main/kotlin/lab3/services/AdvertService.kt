@@ -36,21 +36,25 @@ import java.util.*
         with(get(advertId)) {
             val templateMail: (String) -> Unit = { postman(this.user.email, "Moderation result", it) }
             this.status = status
-                when (status) {
-                    Advert.STATUS.DECLINED -> {
-                        repo.delete(this)
-                        templateMail("The moderator decided to remove your ad for the following reason:\n$comment")
-                    }
-                    Advert.STATUS.ON_MODERATION -> {
-                        repo.save(this)
-                        templateMail("The moderator decided that you need to modify the ad due to:\n$comment")
-                    }
-                    Advert.STATUS.APPROVED -> {
-                        creationDate = Date()
-                        repo.save(this)
-                        templateMail("Congratulations! Ad approved.")
-                    }
+            when (status) {
+                Advert.STATUS.DECLINED -> {
+                    repo.delete(this)
+                    templateMail("The moderator decided to remove your ad for the following reason:\n$comment")
                 }
+                Advert.STATUS.ON_MODERATION -> {
+                    repo.save(this)
+                    templateMail("The moderator decided that you need to modify the ad due to:\n$comment")
+                }
+                Advert.STATUS.APPROVED -> {
+                    publishDate = Date()
+                    repo.save(this)
+                    templateMail("Congratulations! Ad approved.")
+                }
+                Advert.STATUS.CLOSED -> {
+                    repo.save(this)
+                    templateMail("You closed advert")
+                }
+            }
         }
 
     @Transactional fun modify(advertId: Long, modified: Map<String, String>) =
@@ -67,7 +71,10 @@ import java.util.*
             modified["mobileNumber"]?.let { mobileNumber = it }
             modified["isRealtor"]?.let { isRealtor = it.toBoolean() }
             modified["image"]?.let { image = it }
-            status = Advert.STATUS.ON_MODERATION
+            status = modified["status"]?.let {
+                val st = Advert.STATUS.valueOf(it)
+                if (st == Advert.STATUS.CLOSED) st else null
+            } ?: Advert.STATUS.ON_MODERATION
         })
 
     fun getAll(status: Advert.STATUS = Advert.STATUS.APPROVED) = repo.findAll().filter { it.status == status }.toList()

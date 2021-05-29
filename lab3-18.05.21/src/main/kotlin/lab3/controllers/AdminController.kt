@@ -55,9 +55,9 @@ class AdminController {
     @GetMapping(path = ["stat"], produces = ["application/json"])
     fun getStatistic(@RequestParam isCached: Boolean = true, raw: HttpServletRequest) =
         ok(raw) {
-            msg = if (!isCached or Statistic.cached.isEmpty()) {
+            msg = if (isCached) {
                 try {
-                    Statistic.updateReq()
+                    Statistic.computeTaskReq()
                     "Computing statistic started, you will get results on your email as soon as possible"
                 } catch (e: IOException) {
                     "Error sending request to statistic update. Try it later or contact support team"

@@ -1,7 +1,6 @@
 package lab3.services
 
 import com.beust.klaxon.Klaxon
-import lab3.MIDNIGHT
 import lab3.models.User
 import lab3.repos.UserRepo
 import lab3.utils.Postman
@@ -32,26 +31,32 @@ import javax.annotation.PostConstruct
 
     @PostConstruct @Transactional
     fun initAdmin() =
-        try {
-            repo getByEmail adminEmail
-            log.info { "admin user already exists in db" }
-        } catch (e: EmptyResultDataAccessException) {
-            repo.save(User(adminEmail, encoder.encode(adminPass)).apply {
-                name = adminName
-                role = User.ROLE.ADMIN
-            })
-            log.info { "admin user created" }
+        log.info {
+            try {
+                repo getByEmail adminEmail
+                "admin user already exists in db"
+            } catch (e: EmptyResultDataAccessException) {
+                repo.save(User(adminEmail, encoder.encode(adminPass)).apply {
+                    name = adminName
+                    role = User.ROLE.ADMIN
+                })
+                "admin user created"
+            }
         }
 
     @Transactional fun add(email: String, password: String, name: String) =
-        User(email, encoder.encode(password)).apply {
-            repo.save(this)
-            try { postman(email, "Register", "yeah!") } catch (e: MailSendException) { log.error { e.message } }
+        log.error {
+            User(email, encoder.encode(password)).apply {
+                repo.save(this)
+                postman(email, "Register", "yeah!")
+            }
         }
 
     @Transactional infix fun delete(email: String) {
-        repo.delete(repo.getByEmail(email))
-        try { postman(email, "Goodbye", ":(") } catch (e: MailSendException) { log.error { e.message } }
+        log.error {
+            repo.delete(repo.getByEmail(email))
+            postman(email, "Goodbye", ":(")
+        }
     }
 
     @Transactional infix fun resetPassword(email: String) =
@@ -81,14 +86,15 @@ import javax.annotation.PostConstruct
             modified["isDescriber"]?.let { this.isDescriber = it.toBoolean() }
         })
 
-    @Scheduled(cron = MIDNIGHT) fun sendNewAdvertsEmails() {
-        val newAdverts = advertService.getAll().filter { Date().time - it.creationDate.time > TimeUnit.HOURS.toMillis(1) }
+    // once in a week, on sunday night
+    @Scheduled(cron = "* 0 0 * * 0") fun sendNewAdvertsEmails() {
+        val newAdverts = advertService.getAll().filter { Date().time - it.publishDate.time > TimeUnit.HOURS.toMillis(1) }
         getAll().filter { it.isDescriber }.forEach { u ->
             postman(u.email, "New adverts available!", Klaxon().toJsonString(newAdverts.filterNot { u == it.user }))
         }
     }
 
-    fun getAll(): List<User> = repo.findAll().toList()
+    fun getAll() = repo.findAll().toList()
 
     infix operator fun get(id: Long) = repo getByUserId id
 

@@ -3,12 +3,11 @@ package lab3.utils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender
-import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.stereotype.Component
 import javax.mail.Message
 import javax.mail.internet.InternetAddress
 
-@EnableScheduling @Component class Postman {
+@Component class Postman {
 
     @Value("\${spring.mail.username}") private lateinit var from: String
     @Autowired private lateinit var sender: JavaMailSender

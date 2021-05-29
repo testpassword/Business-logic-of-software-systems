@@ -17,13 +17,11 @@ import javax.servlet.http.HttpServletRequest
 
 @ControllerAdvice class GlobalControllersExcHandler {
 
-    private val log = KotlinLogging.logger {}
-
     private fun bad(block: Res.() -> Unit) = ResponseEntity(Res().apply(block), HttpStatus.BAD_REQUEST)
 
     @ExceptionHandler(Exception::class) fun handleErrors(req: HttpServletRequest, e: Exception) =
         bad {
-            log.error { e.stackTraceToString() }
+            KotlinLogging.logger {}.error { e.stackTraceToString() }
             msg = when (e) {
                 is LockedException -> "Your account locked. Maybe you forgot to change temp password or was banned"
                 is DataFormatException -> "You must specify why the ad wasn't approved"
