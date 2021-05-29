@@ -1,4 +1,4 @@
-package lab3.dtos
+package lab3.dtos.http
 
 import lab3.models.Advert
 import lab3.models.User

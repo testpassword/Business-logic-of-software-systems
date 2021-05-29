@@ -1,7 +1,7 @@
 package lab3.controllers
 
-import lab3.dtos.UserReq
-import lab3.dtos.UserRes
+import lab3.dtos.http.UserReq
+import lab3.dtos.http.UserRes
 import lab3.security.JWTTokenUtil
 import lab3.services.UserService
 import org.json.JSONObject

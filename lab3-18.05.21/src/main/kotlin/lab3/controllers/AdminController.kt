@@ -1,8 +1,8 @@
 package lab3.controllers
 
 import com.beust.klaxon.Klaxon
-import lab3.dtos.AdminReq
-import lab3.dtos.Res
+import lab3.dtos.http.AdminReq
+import lab3.dtos.http.Res
 import lab3.models.RoleException
 import lab3.models.User
 import lab3.security.JWTTokenUtil
@@ -21,10 +21,17 @@ class AdminController {
 
     @Autowired private lateinit var jwt: JWTTokenUtil
     @Autowired private lateinit var service: UserService
+    @Autowired private lateinit var statistic: Statistic
 
     private fun ok(raw: HttpServletRequest, block: Res.() -> Unit): ResponseEntity<Res> {
         if ((service loadUserByUsername (jwt decode raw)).role != User.ROLE.ADMIN) throw RoleException()
         else return ResponseEntity(Res().apply(block), HttpStatus.OK)
+    }
+
+    @GetMapping(path = ["test"])
+    fun test(): ResponseEntity<String> {
+        statistic.sendComputeTaskReq()
+        return ResponseEntity("got it", HttpStatus.OK)
     }
 
     @DeleteMapping(path = ["delete/{userId}"], consumes = ["application/json"], produces = ["application/json"])
@@ -55,13 +62,12 @@ class AdminController {
     @GetMapping(path = ["stat"], produces = ["application/json"])
     fun getStatistic(@RequestParam isCached: Boolean = true, raw: HttpServletRequest) =
         ok(raw) {
-            msg = if (isCached) {
+            msg = if (isCached) Klaxon().toJsonString(statistic.cached) else
                 try {
-                    Statistic.computeTaskReq()
+                    statistic.sendComputeTaskReq()
                     "Computing statistic started, you will get results on your email as soon as possible"
                 } catch (e: IOException) {
                     "Error sending request to statistic update. Try it later or contact support team"
                 }
-            } else Klaxon().toJsonString(Statistic.cached)
         }
 }

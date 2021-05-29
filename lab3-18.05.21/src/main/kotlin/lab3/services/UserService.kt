@@ -31,32 +31,26 @@ import javax.annotation.PostConstruct
 
     @PostConstruct @Transactional
     fun initAdmin() =
-        log.info {
-            try {
-                repo getByEmail adminEmail
-                "admin user already exists in db"
-            } catch (e: EmptyResultDataAccessException) {
-                repo.save(User(adminEmail, encoder.encode(adminPass)).apply {
-                    name = adminName
-                    role = User.ROLE.ADMIN
-                })
-                "admin user created"
-            }
+        try {
+            repo getByEmail adminEmail
+            log.debug { "admin user already exists in db" }
+        } catch (e: EmptyResultDataAccessException) {
+            repo.save(User(adminEmail, encoder.encode(adminPass)).apply {
+                name = adminName
+                role = User.ROLE.ADMIN
+            })
+            log.debug { "admin user created" }
         }
 
     @Transactional fun add(email: String, password: String, name: String) =
-        log.error {
-            User(email, encoder.encode(password)).apply {
-                repo.save(this)
-                postman(email, "Register", "yeah!")
-            }
+        User(email, encoder.encode(password)).apply {
+            repo.save(this)
+            postman(email, "Register", "yeah!")
         }
 
     @Transactional infix fun delete(email: String) {
-        log.error {
-            repo.delete(repo.getByEmail(email))
-            postman(email, "Goodbye", ":(")
-        }
+        repo.delete(repo.getByEmail(email))
+        postman(email, "Goodbye", ":(")
     }
 
     @Transactional infix fun resetPassword(email: String) =

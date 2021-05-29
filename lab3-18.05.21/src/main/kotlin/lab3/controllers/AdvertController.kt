@@ -1,7 +1,7 @@
 package lab3.controllers
 
-import lab3.dtos.AdvertReq
-import lab3.dtos.AdvertRes
+import lab3.dtos.http.AdvertReq
+import lab3.dtos.http.AdvertRes
 import lab3.security.JWTTokenUtil
 import lab3.services.AdvertService
 import lab3.services.UserService

@@ -1,7 +1,7 @@
 package lab3.controllers
 
 import io.jsonwebtoken.JwtException
-import lab3.dtos.Res
+import lab3.dtos.http.Res
 import lab3.models.RoleException
 import mu.KotlinLogging
 import org.springframework.dao.EmptyResultDataAccessException

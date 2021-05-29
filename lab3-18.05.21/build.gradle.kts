@@ -25,7 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-jta-atomikos:2.4.4")
-    implementation("org.springframework.boot:spring-boot-starter-activemq")
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springdoc:springdoc-openapi-ui:1.5.4")
     // log
     implementation("org.slf4j:slf4j-api:1.7.30")
@@ -42,6 +42,7 @@ dependencies {
     //other
     implementation("com.rabbitmq:amqp-client:5.12.0")
     implementation("commons-io:commons-io:2.9.0")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
 }
 
 tasks.withType<KotlinCompile> {

@@ -2,9 +2,9 @@ package lab3.controllers
 
 import io.jsonwebtoken.JwtException
 import org.springframework.security.core.AuthenticationException
-import lab3.dtos.ModerateReq
-import lab3.dtos.ModeratorRes
-import lab3.dtos.Res
+import lab3.dtos.http.ModerateReq
+import lab3.dtos.http.ModeratorRes
+import lab3.dtos.http.Res
 import lab3.models.Advert
 import lab3.models.RoleException
 import lab3.models.User
