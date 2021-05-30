@@ -30,7 +30,7 @@ class AdminController {
 
     @GetMapping(path = ["test"])
     fun test(): ResponseEntity<String> {
-        statistic.sendComputeTaskReq()
+        //statistic.sendComputeTaskReq()
         return ResponseEntity("got it", HttpStatus.OK)
     }
 
@@ -64,7 +64,7 @@ class AdminController {
         ok(raw) {
             msg = if (isCached) Klaxon().toJsonString(statistic.cached) else
                 try {
-                    statistic.sendComputeTaskReq()
+                    statistic.sendComputeTaskReq((service loadUserByUsername (jwt decode raw)).email)
                     "Computing statistic started, you will get results on your email as soon as possible"
                 } catch (e: IOException) {
                     "Error sending request to statistic update. Try it later or contact support team"

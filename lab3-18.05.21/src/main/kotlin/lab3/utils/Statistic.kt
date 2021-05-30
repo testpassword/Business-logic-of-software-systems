@@ -1,5 +1,6 @@
 package lab3.utils
 
+import com.beust.klaxon.Klaxon
 import lab3.dtos.message.StatisticReq
 import lab3.models.Advert
 import lab3.services.AdvertService
@@ -12,24 +13,31 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 
 const val STAT_QUEUE_NAME = "STATISTIC"
 
 @Component @EnableScheduling @RabbitListener(queues = [STAT_QUEUE_NAME])
 class Statistic {
 
-    enum class ACTIONS { RECOMPUTE }
-
     @Autowired private lateinit var userService: UserService
     @Autowired private lateinit var advertService: AdvertService
-    val cached: Map<String, Any>? = null
+    @Autowired private lateinit var postman: Postman
+    var cached: Map<String, Any> = emptyMap()
+
+    enum class ACTIONS { RECOMPUTE }
+
+    @PostConstruct fun getStatisticOnStartup() { cached = compute() }
 
     // every midnight
-    @Scheduled(cron = "0 0 0 * * *") fun sendComputeTaskReq() = MQSender(STAT_QUEUE_NAME, StatisticReq(ACTIONS.RECOMPUTE))
+    @Scheduled(cron = "0 0 0 * * *") fun sendComputeTaskReq(recipient: String) =
+        MQSender(STAT_QUEUE_NAME, StatisticReq(ACTIONS.RECOMPUTE, recipient))
 
-    @RabbitHandler fun getComputeTaskReq(res: ByteArray) =
-        when (SerializationUtils.deserialize<StatisticReq>(res).action) {
-            ACTIONS.RECOMPUTE -> println("its working!")
+    @RabbitHandler fun getTaskReq(res: ByteArray) =
+        with(SerializationUtils.deserialize<StatisticReq>(res)) {
+            when (action) {
+                ACTIONS.RECOMPUTE -> postman(recipient, "Actual statistic", Klaxon().toJsonString(compute()))
+            }
         }
 
     private fun compute(): Map<String, Any> {

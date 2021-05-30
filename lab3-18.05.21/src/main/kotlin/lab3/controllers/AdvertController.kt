@@ -22,16 +22,10 @@ class AdvertController {
     private fun ok(block: AdvertRes.() -> Unit) = ResponseEntity(AdvertRes().apply(block), HttpStatus.OK)
 
     @GetMapping(path = ["all"], produces = ["application/json"])
-    fun getAll() =
-        ok {
-            adverts = advertService.getAll()
-        }
+    fun getAll() = ok { adverts = advertService.getAll() }
 
     @GetMapping(path = ["{advertId}"], produces = ["application/json"])
-    fun getAdvert(@PathVariable advertId: Long) =
-        ok {
-            adverts = listOf(advertService[advertId])
-        }
+    fun getAdvert(@PathVariable advertId: Long) = ok { adverts = listOf(advertService[advertId]) }
 
     @GetMapping(path = ["forUser/{userId}"], produces = ["application/json"])
     fun getForUser(@PathVariable userId: Long) =

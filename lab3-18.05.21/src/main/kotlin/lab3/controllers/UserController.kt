@@ -32,16 +32,10 @@ class UserController {
     }
 
     @GetMapping(path = ["all"], produces = ["application/json"])
-    fun getAll() =
-        ok {
-            users = service.getAll()
-        }
+    fun getAll() = ok { users = service.getAll() }
 
     @GetMapping(path = ["{userId}"], produces = ["application/json"])
-    fun getUser(@PathVariable userId: Long) =
-        ok {
-            users = listOf(service[userId])
-        }
+    fun getUser(@PathVariable userId: Long) = ok { users = listOf(service[userId]) }
 
     @GetMapping(path=["spec"], produces = ["application/json"])
     fun getSpecificUsers(@RequestParam ids: String) =

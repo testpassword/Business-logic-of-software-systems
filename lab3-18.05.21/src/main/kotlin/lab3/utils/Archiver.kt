@@ -1,8 +1,9 @@
 package lab3.utils
 
+import lab3.dtos.message.ArchiverReq
 import lab3.models.Advert
 import lab3.services.AdvertService
-import mu.KotlinLogging
+import org.apache.commons.lang3.SerializationUtils
 import org.springframework.amqp.rabbit.annotation.RabbitHandler
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,21 +15,21 @@ import java.util.*
 import javax.imageio.ImageIO
 
 const val ARCH_QUEUE_NAME = "ARCHIVER"
-const val ARCH_COMPRESS_REQ = "ARCHIVER_COMPRESS"
 
-@Component @EnableScheduling //@RabbitListener(queues = [ARCH_QUEUE_NAME])
-object Archiver {
+@Component @EnableScheduling @RabbitListener(queues = [ARCH_QUEUE_NAME])
+class Archiver {
 
     @Autowired private lateinit var advertService: AdvertService
 
-    // once in month
-    //@Scheduled(cron = "* 0 0 1 * *") fun sendArchiveTaskReq() = MQSender(ARCH_QUEUE_NAME, ARCH_COMPRESS_REQ)
+    enum class ACTIONS { COMPRESS }
 
-//    @RabbitHandler fun getArchiveTaskReq(res: String) =
-//            when (req) {
-//                ARCH_COMPRESS_REQ -> archive()
-//                else -> "Task with name $req didn't exist for this queue"
-//            }
+    // once in month
+    @Scheduled(cron = "* 0 0 1 * *") fun sendArchiveTaskReq() = MQSender(ARCH_QUEUE_NAME, ArchiverReq(ACTIONS.COMPRESS))
+
+    @RabbitHandler fun getTaskReq(res: ByteArray) =
+        when (SerializationUtils.deserialize<ArchiverReq>(res).action) {
+            ACTIONS.COMPRESS -> archive()
+        }
 
     private fun archive() {
         advertService.getAll().filter { it.status == Advert.STATUS.CLOSED && !it.archived }.forEach {

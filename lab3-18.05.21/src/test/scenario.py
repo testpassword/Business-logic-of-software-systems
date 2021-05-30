@@ -1,7 +1,8 @@
 import requests
 
+
 class User:
-    def __init__(self, email: str, password: str, name: str, token = ''):
+    def __init__(self, email: str, password: str, name: str, token=''):
         self.email = email
         self.password = password
         self.name = name
@@ -22,52 +23,52 @@ admin = User('god@lol.kek', 'toor', 'god')
 
 print('1. регистрация пользователя 1')
 res = requests.put(
-    url = f'{api["user"]}register', 
-    json = {
+    url=f'{api["user"]}register',
+    json={
         'email': user.email,
         'password': user.password,
         'name': user.name
-        }).json()
+    }).json()
 print(res)
 user.token = res['token']
 print()
 
 print('2. регистрация модератора')
 res = requests.put(
-    url = f'{api["user"]}register',
-    json = {
+    url=f'{api["user"]}register',
+    json={
         'email': moderator.email,
         'password': moderator.password,
         'name': moderator.name
-        }).json()
+    }).json()
 print(res)
 moderator.token = res['token']
 print()
 
 print('3. админ делает второго пользователя модератором')
 res = requests.post(
-    url = f'{api["user"]}login',
-    json = {
+    url=f'{api["user"]}login',
+    json={
         'email': admin.email,
         'password': admin.password
     }).json()
 print(res)
 admin.token = res['token']
 print(requests.patch(
-    url = f'{api["admin"]}change_role/3',
-    json = {
+    url=f'{api["admin"]}change_role/3',
+    json={
         'userId': 3,
         'userRole': 'MODERATOR'
     },
-    headers = {
+    headers={
         'Authorization': f'Bearer {admin.token}'
     }).json())
 print()
 
 print('4. Пользователь добавляет объявление')
 print(requests.post(
-    url = f'{api["advert"]}add',
-    json = {
+    url=f'{api["advert"]}add',
+    json={
         'cost': 10000,
         'location': 'SPB',
         'quantityOfRooms': 3,
@@ -75,30 +76,30 @@ print(requests.post(
         'name': 'flat',
         'mobileNumber': '88005553535'
     },
-    headers = {
+    headers={
         'Authorization': f'Bearer {user.token}'
     }).json())
 
 print('5. Модератор получает список неодобренных объявлений')
 print(requests.get(
-        url = f'{api["moderate"]}get_by_status',
-        params = {
-            'status': 'ON_MODERATION'
-        },
-        headers = {
-            'Authorization': f'Bearer {moderator.token}'
-        }
-    ).json())
+    url=f'{api["moderate"]}get_by_status',
+    params={
+        'status': 'ON_MODERATION'
+    },
+    headers={
+        'Authorization': f'Bearer {moderator.token}'
+    }
+).json())
 
 print('6. Модератор одобряет объявление')
 print(requests.post(
-    url = f'{api["moderate"]}change/1',
-    json = {
+    url=f'{api["moderate"]}change/1',
+    json={
         'status': 'APPROVED'
     },
-    headers = {
+    headers={
         'Authorization': f'Bearer {moderator.token}'
     }).json())
 
 print('7. Пользователь проверяет, что статус изменился')
-print(requests.get(url = f'{api["advert"]}1').json())
+print(requests.get(url=f'{api["advert"]}1').json())
