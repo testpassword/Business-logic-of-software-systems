@@ -27,9 +27,7 @@ class Archiver {
     @Scheduled(cron = "* 0 0 1 * *") fun sendArchiveTaskReq() = MQSender(ARCH_QUEUE_NAME, ArchiverReq(ACTIONS.COMPRESS))
 
     @RabbitHandler fun getTaskReq(res: ByteArray) =
-        when (SerializationUtils.deserialize<ArchiverReq>(res).action) {
-            ACTIONS.COMPRESS -> archive()
-        }
+        when (SerializationUtils.deserialize<ArchiverReq>(res).action) { ACTIONS.COMPRESS -> archive() }
 
     private fun archive() {
         advertService.getAll().filter { it.status == Advert.STATUS.CLOSED && !it.archived }.forEach {

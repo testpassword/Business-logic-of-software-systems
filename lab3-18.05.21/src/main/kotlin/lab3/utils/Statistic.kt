@@ -29,18 +29,15 @@ class Statistic {
 
     @PostConstruct fun getStatisticOnStartup() { cached = compute() }
 
-    // every midnight
-    @Scheduled(cron = "0 0 0 * * *") fun sendComputeTaskReq(recipient: String) =
-        MQSender(STAT_QUEUE_NAME, StatisticReq(ACTIONS.RECOMPUTE, recipient))
+    fun sendComputeTaskReq(recipient: String = "") = MQSender(STAT_QUEUE_NAME, StatisticReq(ACTIONS.RECOMPUTE, recipient))
 
     @RabbitHandler fun getTaskReq(res: ByteArray) =
         with(SerializationUtils.deserialize<StatisticReq>(res)) {
-            when (action) {
-                ACTIONS.RECOMPUTE -> postman(recipient, "Actual statistic", Klaxon().toJsonString(compute()))
-            }
+            when (action) { ACTIONS.RECOMPUTE -> postman(recipient, "Actual statistic", Klaxon().toJsonString(cached)) }
         }
 
-    private fun compute(): Map<String, Any> {
+    // every midnight
+    @Scheduled(cron = "0 0 0 * * *") private fun compute(): Map<String, Any> {
         val stat = mapOf(
             "users" to userService.getAll().let { u ->
                 mapOf(
@@ -61,6 +58,7 @@ class Statistic {
                 )}
         )
         KotlinLogging.logger {}.debug { "Statistic recomputed" }
+        cached = stat
         return stat
     }
 }
