@@ -14,7 +14,10 @@ group = "testpassword"
 version = "1.1"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
-repositories { mavenCentral() }
+repositories {
+    mavenCentral()
+    jcenter()
+}
 
 dependencies {
     // spring
@@ -24,8 +27,8 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-jta-atomikos:2.4.4")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
+    // http://localhost:17502/swagger-ui.html
     implementation("org.springdoc:springdoc-openapi-ui:1.5.4")
     // log
     implementation("org.slf4j:slf4j-api:1.7.30")
@@ -39,10 +42,16 @@ dependencies {
     implementation("com.beust:klaxon:5.5")
     // db
     runtimeOnly("org.postgresql:postgresql")
-    //other
+    // other
     implementation("com.rabbitmq:amqp-client:5.12.0")
     implementation("commons-io:commons-io:2.9.0")
     implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("khttp:khttp:1.0.0")
+    // test
+    testImplementation(kotlin("test-junit5"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
 }
 
 tasks.withType<KotlinCompile> {

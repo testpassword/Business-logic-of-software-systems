@@ -29,7 +29,9 @@ class ModeratorController {
 
     @GetMapping(path = ["get_by_status"], produces = ["application/json"])
     fun getAdvertsByStatus(@RequestParam status: String, raw: HttpServletRequest) =
-        ok(raw) { adverts = advertService.getAll(Advert.STATUS.valueOf(status)) }
+        ok(raw) {
+            adverts = advertService.getAll(Advert.STATUS.valueOf(status))
+        }
 
     @PostMapping(path = ["change/{advertId}"], produces = ["application/json"])
     fun setAdvertStatus(@PathVariable advertId: Long, @RequestBody req: ModerateReq, raw: HttpServletRequest) =

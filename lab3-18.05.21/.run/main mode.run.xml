@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="main mode" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="false">
+  <configuration default="false" name="main mode" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="true">
     <module name="lab3-18.05.21.main" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
@@ -18,7 +18,7 @@
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="logging.level.root" />
-        <option name="value" value="debug" />
+        <option name="value" value="error" />
       </param>
     </additionalParameters>
     <method v="2">
