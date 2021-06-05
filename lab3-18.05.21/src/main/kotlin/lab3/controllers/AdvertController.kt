@@ -2,10 +2,10 @@ package lab3.controllers
 
 import lab3.dtos.http.AdvertReq
 import lab3.dtos.http.AdvertRes
+import lab3.models.Advert
 import lab3.security.JWTTokenUtil
 import lab3.services.AdvertService
 import lab3.services.UserService
-import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.*
 import org.springframework.web.bind.annotation.*
@@ -48,18 +48,19 @@ class AdvertController {
     @PostMapping(path = ["add"], consumes = ["application/json"], produces = ["application/json"])
     fun add(@Valid @RequestBody req: AdvertReq, raw: HttpServletRequest) =
         ok {
-            val advert = req.toAdvert()
-            if (req.mobileNumber.isBlank() || req.name.isBlank()) throw Exception("Required mobileNumber and name for advert")
+            println("a norm $req")
+            if (req.mobileNumber.isNullOrBlank() || req.name.isNullOrBlank()) throw Exception("Required mobileNumber and name for advert")
+            val advert = req.fillAdvert(Advert())
             advert.user = userService loadUserByUsername (jwt decode raw)
             msg = if (advertService add advert) "Your advert was complete automoderation and sent to manual"
             else "We found a problems while moderating. Please read our rules"
         }
 
     @PutMapping(path = ["{advertId}"], consumes = ["application/json"], produces = ["application/json"])
-    fun modify(@PathVariable advertId: Long, req: HttpEntity<String>, raw: HttpServletRequest) =
+    fun modify(@PathVariable advertId: Long, @RequestBody req: AdvertReq, raw: HttpServletRequest) =
         ok {
             userService loadUserByUsername (jwt decode raw)
-            advertService.modify(advertId, JSONObject(req.body).toMap().mapValues { it.toString() })
+            advertService.modify(advertId, req)
             msg = "Successfully modified"
         }
 

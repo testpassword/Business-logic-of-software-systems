@@ -1,6 +1,8 @@
 package lab3.services
 
+import lab3.dtos.http.AdvertReq
 import lab3.models.Advert
+import lab3.models.RoleException
 import lab3.repos.AdvertRepo
 import lab3.utils.AutoModerator
 import lab3.utils.Postman
@@ -57,25 +59,12 @@ import java.util.*
             }
         }
 
-    @Transactional fun modify(advertId: Long, modified: Map<String, String>) =
-        repo.save(get(advertId).apply {
-            modified["cost"]?.let { cost = it.toInt() }
-            modified["typeOfAdvert"]?.let { typeOfAdvert = Advert.TYPE_OF_ADVERT.valueOf(it) }
-            modified["typeOfEstate"]?.let { typeOfEstate = Advert.TYPE_OF_ESTATE.valueOf(it) }
-            modified["location"]?.let { location = it }
-            modified["quantityOfRooms"]?.let { quantityOfRooms = it.toInt() }
-            modified["area"]?.let { area = it.toInt() }
-            modified["floor"]?.let { floor = it.toInt() }
-            modified["description"]?.let { description = it }
-            modified["name"]?.let { name = it }
-            modified["mobileNumber"]?.let { mobileNumber = it }
-            modified["isRealtor"]?.let { isRealtor = it.toBoolean() }
-            modified["image"]?.let { image = it }
-            status = modified["status"]?.let {
-                val st = Advert.STATUS.valueOf(it)
-                if (st == Advert.STATUS.CLOSED) st else null
-            } ?: Advert.STATUS.ON_MODERATION
-        })
+    @Transactional fun modify(advertId: Long, modified: AdvertReq) {
+        val orig = get(advertId)
+        modified.fillAdvert(orig)
+        modified.status?.let { if (it == Advert.STATUS.CLOSED) orig.status = it else throw RoleException() }
+        repo.save(orig)
+    }
 
     fun getAll(status: Advert.STATUS = Advert.STATUS.APPROVED) = repo.findAll().filter { it.status == status }.toList()
 

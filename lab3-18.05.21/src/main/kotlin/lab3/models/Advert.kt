@@ -21,7 +21,7 @@ class Advert {
     var name: String = ""
     var mobileNumber: String = ""
     var isRealtor: Boolean = false
-    var image: String = "" // base64 string
+    @Column(length = 65535) var image: String = "" // base64 string
     @Enumerated(EnumType.STRING) var status: STATUS = STATUS.ON_MODERATION
     var publishDate: Date = Date(0)
     var archived: Boolean = false

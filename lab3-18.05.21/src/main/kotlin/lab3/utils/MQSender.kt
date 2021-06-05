@@ -9,10 +9,7 @@ object MQSender {
 
     operator fun invoke(queueName: String, msg: Serializable) {
         ConnectionFactory().newConnection().use {
-            with(it.createChannel()) {
-                queueDeclare(STAT_QUEUE_NAME, false, false, false, null)
-                basicPublish("", queueName, null, SerializationUtils.serialize(msg))
-            }
+            with(it.createChannel()) { basicPublish("", queueName, null, SerializationUtils.serialize(msg)) }
         }
         KotlinLogging.logger {}.debug { "[x] Request $msg to $queueName send" }
     }

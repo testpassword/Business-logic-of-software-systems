@@ -12,6 +12,7 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import java.io.IOException
 import java.util.zip.DataFormatException
 import javax.servlet.http.HttpServletRequest
 
@@ -23,6 +24,7 @@ import javax.servlet.http.HttpServletRequest
         bad {
             KotlinLogging.logger {}.error { e.stackTraceToString() }
             msg = when (e) {
+                is IOException -> "Error sending request to statistic update. Try it later or contact support team"
                 is LockedException -> "Your account locked. Maybe you forgot to change temp password or was banned"
                 is DataFormatException -> "You must specify why the ad wasn't approved"
                 is AuthenticationException -> "Password incorrect"

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 import lab3.utils.Statistic
-import java.io.IOException
 
 @RestController @RequestMapping(path = ["/admin"])
 class AdminController {
@@ -26,12 +25,6 @@ class AdminController {
     private fun ok(raw: HttpServletRequest, block: Res.() -> Unit): ResponseEntity<Res> {
         if ((service loadUserByUsername (jwt decode raw)).role != User.ROLE.ADMIN) throw RoleException()
         else return ResponseEntity(Res().apply(block), HttpStatus.OK)
-    }
-
-    @GetMapping(path = ["test"])
-    fun test(): ResponseEntity<String> {
-        //statistic.sendComputeTaskReq()
-        return ResponseEntity("got it", HttpStatus.OK)
     }
 
     @DeleteMapping(path = ["delete/{userId}"], consumes = ["application/json"], produces = ["application/json"])
@@ -62,12 +55,9 @@ class AdminController {
     @GetMapping(path = ["stat"], produces = ["application/json"])
     fun getStatistic(@RequestParam isCached: Boolean = true, raw: HttpServletRequest) =
         ok(raw) {
-            msg = if (isCached) Klaxon().toJsonString(statistic.cached) else
-                try {
-                    statistic.sendComputeTaskReq((service loadUserByUsername (jwt decode raw)).email)
-                    "Computing statistic started, you will get results on your email as soon as possible"
-                } catch (e: IOException) {
-                    "Error sending request to statistic update. Try it later or contact support team"
-                }
+            msg = if (isCached) Klaxon().toJsonString(statistic.cached) else {
+                statistic.sendComputeTaskReq((service loadUserByUsername (jwt decode raw)).email)
+                "Computing statistic started, you will get results on your email as soon as possible"
+            }
         }
 }

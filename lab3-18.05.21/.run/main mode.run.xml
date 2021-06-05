@@ -12,13 +12,14 @@
       </ENTRIES>
     </extension>
     <option name="SPRING_BOOT_MAIN_CLASS" value="lab3.Lab3Application" />
+    <option name="ACTIVE_PROFILES" value="master" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <option name="SHORTEN_COMMAND_LINE" value="NONE" />
     <additionalParameters>
       <param>
         <option name="enabled" value="true" />
         <option name="name" value="logging.level.root" />
-        <option name="value" value="error" />
+        <option name="value" value="debug" />
       </param>
     </additionalParameters>
     <method v="2">

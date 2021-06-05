@@ -1,0 +1,3 @@
+- ImageToBase64: https://base64.guru/converter/encode/image
+- String Length: http://string-functions.com/length.aspx
+- Base64toImage: https://codebeautify.org/base64-to-image-converter
